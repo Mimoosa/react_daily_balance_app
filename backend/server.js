@@ -1,8 +1,27 @@
+require('dotenv').config();
+
+// Validate essential environment variables
+if (!process.env.MONGODB_URI) {
+    console.error('Fatal Error: MONGODB_URI is not defined in .env file');
+    process.exit(1);
+}
+
+if (!process.env.JWT_SECRET) {
+    console.error('Fatal Error: JWT_SECRET is not defined in .env file');
+    process.exit(1);
+}
+
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const userRoutes = require('./routes/userRoutes');
+const errorHandler = require('./middleware/errorHandler');
+const connectDB = require('./config/db');
 
 const app = express();
+
+// Connect to MongoDB
+connectDB();
 
 // Middleware
 app.use(cors());
@@ -13,15 +32,10 @@ app.use(morgan('dev')); // Log requests to console in development mode
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working!' });
 });
+app.use('/api/users', userRoutes);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
-        message: 'Something went wrong!',
-        error: process.env.NODE_ENV === 'development' ? err.message : {}
-    });
-});
+// Error handling middleware (should be last)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 

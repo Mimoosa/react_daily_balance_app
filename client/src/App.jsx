@@ -5,6 +5,7 @@ import ThemeToggle from './components/ThemeToggle';
 import Navbar from './components/Navbar';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './components/Home'
+import LoginPage from './pages/LoginPage';
 
 
 
@@ -16,6 +17,7 @@ const AppContent = () => {
       <div className={`${theme.primary}`}>
         <Navbar />
         <Routes>
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<Home />} />
         </Routes>
         <ThemeToggle />
