@@ -14,12 +14,13 @@ Assign colors to variables
 */
 export const themes = {
     light: {
-        primary: 'text-gray-900', // Main text color
-        secondary: 'text-[#0d557e]', // Secondary text color
+        textWhite: 'text-white', // Main text color
+        textViolet: 'text-violet', // Secondary text color
         alert: 'text-red-600', // Alerts and errors
         highlight: 'text-blue-600', // Links and highlights
-        background: 'bg-white', // Background color
-        background2: 'bg-[#0d557e]', // Secondary background (e.g., cards)
+        backgroundViolet: 'bg-violet-950', // Background color
+        backgroundActive: 'bg-violet-750', // Secondary background (e.g., cards)
+        backgroundWhite: 'bg-white', // Secondary background (e.g., cards)
         border: 'border-gray-300', // Borders
     },
     dark: {
