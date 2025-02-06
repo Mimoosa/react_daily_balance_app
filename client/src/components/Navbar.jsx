@@ -1,11 +1,25 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
 
+/**
+ * Navbar Component
+ * Provides navigation and authentication state UI
+ * Features:
+ * - Conditional rendering based on auth state
+ * - Active link highlighting
+ * - Logout functionality
+ */
 const Navbar = () => {
     const theme = themes.light;
     const navigate = useNavigate();
+    
+    // Check authentication status from local storage
     const isLoggedIn = localStorage.getItem('token');
 
+    /**
+     * Handles user logout by clearing authentication data
+     * and redirecting to home page
+     */
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('username');

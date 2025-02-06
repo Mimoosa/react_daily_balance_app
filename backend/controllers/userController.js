@@ -1,10 +1,22 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
+/**
+ * Creates a JWT token for user authentication
+ * @param {string} _id - User's MongoDB _id
+ * @returns {string} JWT token valid for 3 days
+ */
 const createToken = (_id) => {
     return jwt.sign({ _id }, process.env.JWT_SECRET, { expiresIn: '3d' });
 };
 
+/**
+ * User Registration Controller
+ * Validates input, checks for existing users, and creates new user
+ * @param {Object} req - Express request object with username and password
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
 const registerUser = async (req, res, next) => {
     const { username, password } = req.body;
 
@@ -42,6 +54,13 @@ const registerUser = async (req, res, next) => {
     }
 };
 
+/**
+ * User Login Controller
+ * Validates credentials and issues JWT token
+ * @param {Object} req - Express request object with username and password
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
 const loginUser = async (req, res, next) => {
     const { username, password } = req.body;
 

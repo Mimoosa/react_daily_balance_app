@@ -3,7 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
 import authService from '../services/authService';
 
+/**
+ * LoginPage Component
+ * Handles both user login and registration functionality
+ * Features:
+ * - Toggle between login and register forms
+ * - Form validation
+ * - Success/error notifications
+ * - Delayed navigation after successful auth
+ */
 const LoginPage = () => {
+    // Initialize state and hooks
     const theme = themes.light;
     const navigate = useNavigate();
     const [isLogin, setIsLogin] = useState(true);
@@ -14,6 +24,10 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    /**
+     * Handles form input changes and clears any existing errors
+     * @param {Event} e - The input change event
+     */
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -22,6 +36,12 @@ const LoginPage = () => {
         setError('');
     };
 
+    /**
+     * Handles form submission for both login and registration
+     * On success: Shows notification and redirects after delay
+     * On error: Displays error message
+     * @param {Event} e - The form submission event
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
