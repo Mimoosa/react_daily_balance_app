@@ -4,10 +4,10 @@ const JournalPage = () => {
     const { theme } = useTheme(); 
 
     return (
-        <div className={`h-screen w-full ${theme.background} flex flex-col`}>
+        <div className={`h-full w-full ${theme.background} flex flex-col`}>
             <div className="flex flex-col items-center justify-center flex-grow">
-                <h2 className="text-4xl font-bold text-black dark:text-white mb-6">Daily Journal</h2>
-                <div className="bg-white border border-black p-6 rounded-xl shadow-lg w-[500px]">
+                <h2 className="text-4xl font-bold mb-6">Daily Journal</h2>
+                <div className="bg-white border border-black p-6 rounded-xl shadow-lg md:w-[500px] lg:w-[500px]">
                     <textarea
                         className="w-full h-32 p-3 border border-black rounded-lg focus:outline-none bg-white text-black"
                         placeholder="How was your day? Share your activities and experiences..."

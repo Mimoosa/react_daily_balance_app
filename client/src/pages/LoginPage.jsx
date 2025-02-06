@@ -48,7 +48,7 @@ const LoginPage = () => {
     };
 
     return (
-        <div className={`min-h-screen ${theme.backgroundWhite} flex items-center justify-center px-4`}>
+        <div className={`h-full ${theme.backgroundWhite} flex items-center justify-center px-4`}>
             <div className={`max-w-md w-full ${theme.backgroundWhite} p-8 rounded-lg shadow-lg`}>
                 <div className="flex justify-center space-x-4 mb-8">
                     <button
