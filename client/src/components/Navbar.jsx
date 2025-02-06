@@ -1,6 +1,8 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const Navbar = () => {
@@ -27,11 +29,10 @@ const Navbar = () => {
             <>
               <div className="block lg:hidden ml-auto pr-4 pt-0 mb-0">
                 <button onClick={() => setIsOpen(!isOpen)} className="text-white focus:outline-none">
-                  {isOpen ? (
-                    <i className="fas fa-times text-xl"></i> 
-                  ) : (
-                    <i className="fas fa-bars text-2xl"></i> 
-                  )}
+                  <FontAwesomeIcon 
+                    icon={isOpen ? faTimes : faBars} 
+                    className="text-xl"
+                  />
                 </button>
               </div>
               <div className={`${isOpen ? 'block' : 'hidden'} ml-auto mr-4 lg:block`}>
