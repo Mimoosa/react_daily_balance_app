@@ -1,7 +1,7 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
 import { useState } from 'react';
-import '@fortawesome/fontawesome-free/css/all.min.css';
+/* import '@fontawesome/fontawesome-free/css/all.min.css'; */
 
 /**
  * Navbar Component
