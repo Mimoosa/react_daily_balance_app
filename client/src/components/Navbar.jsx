@@ -20,10 +20,13 @@ const Navbar = () => {
 
   return (
     <div className="p-0 m-0"> 
-      <nav className={`flex justify-between  lg:items-center sticky top-0 z-10 py-4 pl-4 ${theme.backgroundViolet}`}>
+      <nav className={`flex justify-between lg:items-center sticky top-0 z-10 py-4 pl-4 ${theme.backgroundViolet}`}>
         <div>
-          <h1 className="text-lg font-bold text-white lg:text-xl"><Link to="/">Daily Balance</Link></h1>
+          <h1 className="text-lg font-bold text-white lg:text-xl">
+            <Link to="/">Daily Balance</Link>
+          </h1>
         </div>
+        
         <div className="flex flex-col space-y-6">
           {isLoggedIn ? (
             <>
@@ -35,9 +38,10 @@ const Navbar = () => {
                   />
                 </button>
               </div>
+              
               <div className={`${isOpen ? 'block' : 'hidden'} ml-auto mr-4 lg:block`}>
-                <ul className="flex flex-col space-y-4 justify-center lg:flex-row lg:items-center">
-                  <li className="mt-4">
+                <ul className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 space-y-4 lg:space-y-0">
+                  <li>
                     <NavLink 
                       to="/journal" 
                       className={({ isActive }) => `text-violet-50 p-3 rounded-xs hover:bg-violet-700 ${
@@ -46,7 +50,7 @@ const Navbar = () => {
                       Journal
                     </NavLink>
                   </li>
-                  <li className="mt-4">
+                  <li>
                     <NavLink 
                       to="/dashboard" 
                       className={({ isActive }) => `text-violet-50 p-3 rounded-xs hover:bg-violet-700 ${

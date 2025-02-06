@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './components/Home'
 import LoginPage from './pages/LoginPage';
+import JournalPage from './pages/JournalPage';
 
 
 
@@ -19,6 +20,7 @@ const AppContent = () => {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<Home />} />
+          <Route path="/journal" element={<JournalPage />} />
         </Routes>
         <ThemeToggle />
       </div>
