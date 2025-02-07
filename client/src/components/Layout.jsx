@@ -8,18 +8,19 @@ const Layout = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
-  useEffect(() => {
-    const updateNavbarHeight = () => {
-      if (navbarRef.current) {
-        setNavbarHeight(navbarRef.current.offsetHeight);
-      }
-    };
+  const updateNavbarHeight = () => {
+    if (navbarRef.current) {
+      setNavbarHeight(navbarRef.current.offsetHeight);
+    }
+  };
 
-    updateNavbarHeight();
-
+  useEffect(()=>{
     window.addEventListener('resize', updateNavbarHeight);
-
     return () => window.removeEventListener('resize', updateNavbarHeight);
+  }, [])
+
+  useEffect(() => {
+    updateNavbarHeight();
   }, [isOpen]);
 
   return (
