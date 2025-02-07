@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import './App.css';
-import ThemeToggle from './components/ThemeToggle';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Route, Routes} from 'react-router-dom';
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage';
 import JournalPage from './pages/JournalPage';
@@ -13,7 +12,6 @@ import DashboardPage from './pages/DashboardPage'
 
 const AppContent = () => {
   const { theme } = useTheme();
-  const location = useLocation();
   return (
     <div className={`min-h-screen ${theme.background}`}>
       <div className={`${theme.primary}`}>
@@ -25,7 +23,7 @@ const AppContent = () => {
             <Route path="/dashboard" element={<DashboardPage />} />
           </Route>
         </Routes>
-        {!(location.pathname === "/" || location.pathname === "/login" || location.pathname === "/anotherPath") && <ThemeToggle />}
+        
       </div>
     </div>
   );

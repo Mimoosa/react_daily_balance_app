@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import { Outlet, useLocation} from 'react-router-dom';
+import ThemeToggle from './Themetoggle'
 
 const Layout = () => {
   const navbarRef = useRef(null);
@@ -31,6 +32,7 @@ const Layout = () => {
         <div style={{ height: `calc(100vh - ${navbarHeight}px ${location.pathname !== "/" ? " - 40px" : ""})` }}>
             <Outlet />
         </div>
+        {!(location.pathname === "/" || location.pathname === "/login" || location.pathname === "/anotherPath") && <ThemeToggle />}
     </div>
   );
 };
