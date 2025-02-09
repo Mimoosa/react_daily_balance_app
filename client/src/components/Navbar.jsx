@@ -18,7 +18,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
   };
 
   return (
-      <nav className={`flex justify-between sticky top-0 z-10 py-4 pl-4 lg:items-center  ${theme.backgroundViolet}`}>
+      <nav className={`flex justify-between sticky top-0 z-10 py-4 pl-4 lg:items-center ${theme.backgroundViolet}`}>
         <div>
           <h1 className="text-lg font-bold text-white lg:text-xl">
             Daily Balance

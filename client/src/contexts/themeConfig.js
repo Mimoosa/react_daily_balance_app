@@ -7,6 +7,10 @@ Change colors to match our design
 #ffffff - text
 #0d557e - blue
 #0b3c58 - hover blue
+#B1A3FF - bar chart color 1
+#818DED - bar chart color 2
+#6D65CC - bar chart color 3
+#494393 - bar chart color 4
 */
 
 /*
@@ -22,6 +26,10 @@ export const themes = {
         backgroundActive: 'bg-violet-750', // Secondary background (e.g., cards)
         backgroundWhite: 'bg-white', // Secondary background (e.g., cards)
         border: 'border-gray-300', // Borders
+        barChart1: 'bg-[#B1A3FF]',
+        barChart2: 'bg-[#818DED]',
+        barChart3: 'bg-[#6D65CC]',
+        barChart4: 'bg-[#494393]',
     },
     dark: {
         primary: 'text-white', // Main text color
