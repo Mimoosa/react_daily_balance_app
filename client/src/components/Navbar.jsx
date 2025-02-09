@@ -1,7 +1,7 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faTimes } from '../contexts/icons';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const Navbar = ({ isOpen, setIsOpen }) => {
@@ -42,7 +42,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                   <li className="mt-4 lg:mt-0">
                     <NavLink 
                       to="/journal" onClick={() => { setIsOpen(!isOpen); }}
-                      className={({ isActive }) => `text-violet-50 p-3 rounded-xs hover:bg-violet-700 ${
+                      className={({ isActive }) => `text-white p-3 hover:bg-violet-900 rounded-md transition duration-200 ${
                         isActive ? theme.backgroundActive : theme.backgroundViolet
                       }`}>
                       Journal
@@ -51,7 +51,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                   <li className="mt-4 lg:mt-0">
                     <NavLink 
                       to="/dashboard" onClick={() => { setIsOpen(!isOpen); }}
-                      className={({ isActive }) => `text-violet-50 p-3 rounded-xs hover:bg-violet-700 ${
+                      className={({ isActive }) => `text-white p-3 hover:bg-violet-900 rounded-md transition duration-200 ${
                         isActive ? theme.backgroundActive : theme.backgroundViolet
                       }`}>
                       Dashboard
@@ -60,7 +60,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                   <li>
                     <button 
                       onClick={handleLogout}
-                      className="text-violet-50 p-3 rounded-xs hover:bg-violet-700">
+                      className="text-white p-3 hover:bg-violet-900 rounded-md transition duration-200">
                       Logout
                     </button>
                   </li>
@@ -71,7 +71,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
             <div className="ml-auto pr-4 pt-0">
               <NavLink 
                 to="/login" 
-                className={({ isActive }) => `text-violet-50 p-3 rounded-xs hover:bg-violet-700 ${
+                className={({ isActive }) => `text-white p-3 hover:bg-violet-900 rounded-md transition duration-200 ${
                   isActive ? theme.backgroundActive : theme.backgroundViolet
                 }`}>
                 Login

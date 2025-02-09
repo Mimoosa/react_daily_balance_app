@@ -23,7 +23,7 @@ const AppContent = () => {
             <Route path="/dashboard" element={<DashboardPage />} />
           </Route>
         </Routes>
-        
+     
       </div>
     </div>
   );

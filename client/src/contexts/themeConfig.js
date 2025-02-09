@@ -11,6 +11,7 @@ Change colors to match our design
 #818DED - bar chart color 2
 #6D65CC - bar chart color 3
 #494393 - bar chart color 4
+#F3F3F3 - card background
 */
 
 /*
@@ -23,7 +24,8 @@ export const themes = {
         alert: 'text-red-600', // Alerts and errors
         highlight: 'text-blue-600', // Links and highlights
         backgroundViolet: 'bg-violet-950', // Background color
-        backgroundActive: 'bg-violet-750', // Secondary background (e.g., cards)
+        backgroundActive: 'bg-violet-700', // Secondary background (e.g., cards)
+        backgroundCard: 'bg-[#F3F3F3]',
         backgroundWhite: 'bg-white', // Secondary background (e.g., cards)
         border: 'border-gray-300', // Borders
         barChart1: 'bg-[#B1A3FF]',
