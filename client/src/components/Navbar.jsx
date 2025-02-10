@@ -10,12 +10,12 @@ const Navbar = ({ isOpen, setIsOpen }) => {
   const isLoggedIn = localStorage.getItem('token');
   
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    setIsOpen(false);
-    navigate('/');
-  };
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        setIsOpen(false);
+        navigate('/');
+    };
 
   return (
       <nav className={`flex justify-between sticky top-0 z-10 py-4 pl-4 lg:items-center ${theme.backgroundViolet}`}>
