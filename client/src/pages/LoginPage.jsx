@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
-import authService from '../services/authService';
+import { authService } from '../services/api';
 
 /**
  * LoginPage Component
@@ -45,17 +45,16 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const data = await (isLogin
+            const response = await (isLogin
                 ? authService.login(formData)
                 : authService.register(formData)
             );
 
-            if (data.data && data.data.token && data.data.username) {
-                localStorage.setItem('token', data.data.token);
-                localStorage.setItem('username', data.data.username);
+            if (response.data && response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('username', response.data.username);
                 setSuccess(isLogin ? 'Login successful!' : 'Registration successful!');
 
-                // Delay navigation
                 setTimeout(() => {
                     navigate('/dashboard');
                 }, 1500);
@@ -63,7 +62,7 @@ const LoginPage = () => {
                 throw new Error('Invalid response format from server');
             }
         } catch (err) {
-            setError(err.message);
+            setError(err.message || 'An error occurred during authentication');
         }
     };
 
