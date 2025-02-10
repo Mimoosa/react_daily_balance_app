@@ -67,7 +67,7 @@ const LoginPage = () => {
     };
 
     return (
-        <div className={`min-h-screen ${theme.backgroundWhite} flex items-center justify-center px-4`}>
+        <div className={`h-full ${theme.backgroundWhite} flex items-center justify-center px-4`}>
             <div className={`max-w-md w-full ${theme.backgroundWhite} p-8 rounded-lg shadow-lg`}>
                 <div className="flex justify-center space-x-4 mb-8">
                     <button
@@ -148,7 +148,7 @@ const LoginPage = () => {
 
                     <button
                         type="submit"
-                        className={`w-full py-2 px-4 ${theme.backgroundViolet} hover:opacity-90 ${theme.textWhite} rounded-md transition duration-200 font-medium`}
+                        className={`w-full py-2 px-4 ${theme.backgroundViolet} hover:bg-violet-900  ${theme.textWhite} rounded-md transition duration-200 font-medium`}
                     >
                         {isLogin ? 'Login' : 'Register'}
                     </button>

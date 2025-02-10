@@ -124,6 +124,8 @@ const JournalPage = () => {
         const entryDate = new Date(date);
         return today.toDateString() === entryDate.toDateString();
     };
+    const themeLight = themes.light;
+    
 
     return (
         <div className={`h-screen w-full ${theme.background} flex`}>

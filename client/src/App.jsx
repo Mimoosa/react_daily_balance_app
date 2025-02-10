@@ -1,28 +1,29 @@
 import { useState } from 'react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import './App.css';
-import ThemeToggle from './components/ThemeToggle';
-import Navbar from './components/Navbar';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import Home from './components/Home'
+import { BrowserRouter, Route, Routes} from 'react-router-dom';
+import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage';
 import JournalPage from './pages/JournalPage';
+import Layout from './components/Layout';
+import DashboardPage from './pages/DashboardPage'
 
 
 
 const AppContent = () => {
   const { theme } = useTheme();
-
   return (
     <div className={`min-h-screen ${theme.background}`}>
       <div className={`${theme.primary}`}>
-        <Navbar />
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/journal" element={<JournalPage />} />
+          <Route path="/" element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/journal" element={<JournalPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Route>
         </Routes>
-        <ThemeToggle />
+     
       </div>
     </div>
   );

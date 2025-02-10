@@ -1,0 +1,11 @@
+
+import { faBars, faTimes, faDumbbell, faBrain, faUsers, faHeart } from '@fortawesome/free-solid-svg-icons';
+
+export {
+  faBars, // icon for the hamburger menu
+  faTimes, // icon for closing the hamburger menu
+  faDumbbell, // icon for Phsysical section
+  faBrain,  // icon for Cognitive section
+  faUsers, // icon for Social section
+  faHeart //icon for psychological section
+};
