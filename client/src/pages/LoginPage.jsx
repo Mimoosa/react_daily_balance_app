@@ -129,7 +129,7 @@ const LoginPage = () => {
 
                     <button
                         type="submit"
-                        className={`w-full py-2 px-4 ${theme.backgroundViolet} hover:opacity-90 ${theme.textWhite} rounded-md transition duration-200 font-medium`}
+                        className={`w-full py-2 px-4 ${theme.backgroundViolet} hover:bg-violet-900  ${theme.textWhite} rounded-md transition duration-200 font-medium`}
                     >
                         {isLogin ? 'Login' : 'Register'}
                     </button>

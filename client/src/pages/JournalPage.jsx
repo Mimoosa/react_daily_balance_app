@@ -1,7 +1,10 @@
-import { useTheme } from "../contexts/ThemeContext"; 
+import { useTheme } from "../contexts/ThemeContext";
+import { themes } from '../contexts/themeConfig';
 
 const JournalPage = () => {
     const { theme } = useTheme(); 
+    const themeLight = themes.light;
+    
 
     return (
         <div className={`h-full w-full ${theme.background} flex flex-col`}>
@@ -12,7 +15,7 @@ const JournalPage = () => {
                         className="w-full h-32 p-3 border border-black rounded-lg focus:outline-none bg-white text-black"
                         placeholder="How was your day? Share your activities and experiences..."
                     />
-                    <button className="mt-4 bg-violet-700 text-white py-2 px-4 rounded-lg w-full hover:bg-violet-900">
+                    <button className={`mt-4 ${themeLight.backgroundViolet} text-white py-2 px-4 rounded-lg w-full hover:bg-violet-900 rounded-md transition duration-200`}>
                         Analyze My Day
                     </button>
                 </div>

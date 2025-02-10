@@ -14,7 +14,7 @@ function HomePage() {
             <p className="mt-4 text-lg mx-auto md:text-xl md:w-7/12 lg:w-7/12 mt-6">Track and improve your well-being through daily journals with Daily Balance, focusing on physical, cognitive, psychological, and social dimensions.</p>
             <div className="mt-10 lg:mt-10">
             <Link to="/login"
-              className={`${theme.dark.primary} ${theme.light.backgroundViolet} text-lg hover:opacity-90 font-bold py-3 px-8 rounded`}>
+              className={`${theme.dark.primary} ${theme.light.backgroundViolet} text-lg hover:bg-violet-900 font-bold py-3 px-8 rounded-md transition duration-200`}>
               Start Your Balanced Life!
             </Link>
             </div>
