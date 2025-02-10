@@ -1,10 +1,26 @@
+/**
+ * @fileoverview Controller for handling journal operations with AI analysis integration
+ * @module controllers/journalController
+ */
+
 const Journal = require('../models/Journal');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+/**
+ * Initialize Gemini AI model for journal analysis
+ * @constant {GoogleGenerativeAI}
+ */
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); // API key from environment
+const model = genAI.getGenerativeModel({ model: "gemini-pro" }); // Use Gemini Pro model ???
 
+/**
+ * Analyzes journal content using Gemini AI
+ * @async
+ * @function
+ * @param {string} content - The journal entry content to analyze
+ * @returns {Promise<Object>} Analysis result containing mood, summary, and suggestions
+ * @throws {Error} If AI analysis fails
+ */
 const analyzeJournalEntry = async (content) => {
     const prompt = `
     Analyze this journal entry and provide a response in the following JSON format:
@@ -27,6 +43,19 @@ const analyzeJournalEntry = async (content) => {
     }
 };
 
+/**
+ * Creates a new journal entry with AI analysis
+ * @async
+ * @function
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.content - Journal entry content
+ * @param {Object} req.user - Authenticated user object
+ * @param {string} req.user.id - User ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ * @throws {Error} If creation fails or daily entry exists
+ */
 const createJournal = async (req, res) => {
     try {
         const { content } = req.body;
@@ -82,6 +111,17 @@ const createJournal = async (req, res) => {
     }
 };
 
+/**
+ * Retrieves user's journal entries
+ * @async
+ * @function
+ * @param {Object} req - Express request object
+ * @param {Object} req.user - Authenticated user object
+ * @param {string} req.user.id - User ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ * @throws {Error} If fetching fails
+ */
 const getJournals = async (req, res) => {
     try {
         const journals = await Journal.find({ user: req.user.id })
@@ -93,6 +133,22 @@ const getJournals = async (req, res) => {
     }
 };
 
+/**
+ * Updates an existing journal entry
+ * Only allows updating today's entry
+ * @async
+ * @function
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - URL parameters
+ * @param {string} req.params.id - Journal entry ID
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.content - Updated journal content
+ * @param {Object} req.user - Authenticated user object
+ * @param {string} req.user.id - User ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ * @throws {Error} If update fails or entry is not from today
+ */
 const updateJournal = async (req, res) => {
     try {
         const { content } = req.body;
@@ -130,6 +186,12 @@ const updateJournal = async (req, res) => {
     }
 };
 
+/**
+ * Checks if a given date is today
+ * @function
+ * @param {Date} date - Date to check
+ * @returns {boolean} True if date is today, false otherwise
+ */
 const isToday = (date) => {
     const today = new Date();
     const entryDate = new Date(date);
