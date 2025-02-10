@@ -119,13 +119,6 @@ const JournalPage = () => {
      * @param {Date|string} date - The date to check
      * @returns {boolean} True if the date is today, false otherwise
      */
-    const isToday = (date) => {
-        const today = new Date();
-        const entryDate = new Date(date);
-        return today.toDateString() === entryDate.toDateString();
-    };
-    const themeLight = themes.light;
-    
 
     return (
         <div className={`h-screen w-full ${theme.background} flex`}>
