@@ -121,7 +121,7 @@ const JournalPage = () => {
      */
 
     return (
-        <div className={`h-screen w-full ${theme.background} flex`}>
+        <div className={`h-full w-full ${theme.background} flex`}>
             {/* Sidebar with Journal Entries */}
             <JournalEntries 
                 journals={journals}
@@ -131,7 +131,7 @@ const JournalPage = () => {
 
             {/* Journal Entry Form */}
             <div className="flex-1 p-6">
-                <h2 className="text-4xl font-bold text-black dark:text-white mb-6">
+                <h2 className="text-4xl font-bold text-center mt-4 mb-6">
                     {isEditing ? 'Edit Journal Entry' : 'New Journal Entry'}
                 </h2>
                 
