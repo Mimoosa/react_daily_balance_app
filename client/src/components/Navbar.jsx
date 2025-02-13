@@ -55,6 +55,13 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                       }`}>
                       Dashboard
                     </NavLink>
+                    <NavLink 
+                      to="/activity" onClick={() => { setIsOpen(!isOpen); }}
+                      className={({ isActive }) => `text-white p-3 hover:bg-violet-900 rounded-md transition duration-200 ${
+                        isActive ? theme.backgroundActive : theme.backgroundViolet
+                      }`}>
+                      Activity Report
+                    </NavLink>
                   </li>
                   <li>
                     <button 
