@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import JournalPage from './pages/JournalPage';
 import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage'
+import ActivityReportPage from './pages/ActivityReportPage'
 
 
 
@@ -21,6 +22,7 @@ const AppContent = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/journal" element={<JournalPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/activity" element={<ActivityReportPage />} />
           </Route>
         </Routes>
      

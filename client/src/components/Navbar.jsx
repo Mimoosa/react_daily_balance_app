@@ -2,7 +2,6 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes } from '../contexts/icons';
-import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const Navbar = ({ isOpen, setIsOpen }) => {
   const theme = themes.light;
