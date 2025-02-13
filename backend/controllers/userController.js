@@ -3,13 +3,14 @@ const jwt = require('jsonwebtoken');
 
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        const user = await User.create({ name, email, password });
+        const { username, email, password } = req.body;
+        const user = await User.create({ username, email, password });
         res.status(201).json({
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            token: generateToken(user._id)
+            data: {  // Wrap in data object to match login response
+                id: user._id,
+                username: user.username,
+                token: generateToken(user._id)
+            }
         });
     } catch (error) {
         res.status(400).json({ error: error.message });
