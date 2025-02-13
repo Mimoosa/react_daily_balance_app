@@ -1,4 +1,7 @@
 import React from "react";
+import { themes } from '../contexts/themeConfig';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDumbbell, faBrain, faUsers, faHeart } from '../contexts/icons';
 
 const activities = [
   { text: "Went to the gym for 1 hour", category: "Physical", points: 20 },
@@ -13,36 +16,50 @@ const totalPoints = activities.reduce((acc, activity) => {
   return acc;
 }, {});
 
+  const labelIcons = {
+        Physical: faDumbbell,
+        Psychological: faHeart,
+        Social: faUsers,
+        Cognitive: faBrain
+    }
+
+
+
 const DailyActivityReport = () => {
+  const theme = themes.light;
   return (
-    <div className="min-h-screen bg-gray-200">
-      <div className="flex flex-col items-center mt-8">
-        <h2 className="text-2xl font-bold">Daily Activity Report</h2>
+    <div className="h-full">
+      <div className="flex flex-col items-center mt-6">
+        <h2 className="text-4xl font-bold">Daily Activity Report</h2>
         
-        <div className="mt-6 flex gap-6">
-          <div className="bg-white p-6 rounded-2xl shadow-lg w-80">
-            <h3 className="text-xl font-semibold mb-4">Daily Summary</h3>
+        <div className="mt-6 flex flex-col lg:flex-row gap-6">
+          <div>
+          <h3 className="text-xl text-center font-semibold mb-3 lg:mt-2">Daily Summary</h3>
+          <div className={`${theme.backgroundCard}  p-6 rounded-md shadow-lg w-80`} style={{ height: '300px', overflowY: 'auto' }}>
             <ul>
               {activities.map((activity, index) => (
                 <li key={index} className="mb-2">
-                  <p>{activity.text}</p>
+                  <p className="text-black ">{activity.text}</p>
                   <p className={`${activity.points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {activity.category}: {activity.points} points
+                  <FontAwesomeIcon icon={labelIcons[activity.category]} size="lg" className="text-black mr-2"/>{activity.category}: {activity.points} points
                   </p>
                 </li>
               ))}
             </ul>
           </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-lg w-80">
-            <h3 className="text-xl font-semibold mb-4">Total Points</h3>
+          </div>
+          
+          <div>
+          <h3 className="text-xl text-center font-semibold mb-3 lg:mt-2">Total Points</h3>
+          <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px'}}>
             <ul>
               {Object.entries(totalPoints).map(([category, points], index) => (
                 <li key={index} className="mb-2">
-                  <p className={`${points >= 0 ? 'text-green-600' : 'text-red-600'}`}>{category}: {points} points</p>
+                  <p className={`${points >= 0 ? 'text-green-600' : 'text-red-600'}`}> <FontAwesomeIcon icon={labelIcons[category]} size="lg" className="text-black mr-2"/>{category}: {points} points</p>
                 </li>
               ))}
             </ul>
+          </div>
           </div>
         </div>
       </div>
