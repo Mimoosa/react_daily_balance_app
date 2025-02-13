@@ -8,15 +8,15 @@ function HomePage() {
       <div className="relative min-h-screen lg:h-full">
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${bgImage})`, filter: 'blur(4px)' }}></div>
         <div className={`absolute inset-0 ${theme.dark.background} opacity-50`}></div>
-        <div className="relative z-10 flex  min-h-screen lg:h-full">
-          <div className={ `mt-30 text-center ${theme.dark.primary} lg:mt-40` }>
+        <div className="relative z-10 flex items-center justify-center min-h-screen lg:h-full">
+          <div className="max-w-4xl px-4 text-center text-white">
             <h2 className="text-3xl font-bold md:text-4xl lg:text-4xl">Daily Balance</h2>
-            <p className="mt-4 text-lg mx-auto md:text-xl md:w-7/12 lg:w-7/12 mt-6">Track and improve your well-being through daily journals with Daily Balance, focusing on physical, cognitive, psychological, and social dimensions.</p>
-            <div className="mt-10 lg:mt-10">
-            <Link to="/login"
-              className={`${theme.dark.primary} ${theme.light.backgroundViolet} text-lg hover:bg-violet-900 font-bold py-3 px-8 rounded-md transition duration-200`}>
-              Start Your Balanced Life!
-            </Link>
+            <p className="mt-4 text-lg mx-auto md:text-xl md:w-7/12 lg:w-7/12">Track and improve your well-being through daily journals with Daily Balance, focusing on physical, cognitive, psychological, and social dimensions.</p>
+            <div className="mt-8">
+              <Link to="/login"
+                className={`${theme.dark.primary} ${theme.light.backgroundViolet} text-lg hover:bg-violet-900 font-bold py-3 px-8 rounded-md transition duration-200`}>
+                Start Your Balanced Life!
+              </Link>
             </div>
           </div>
         </div>
