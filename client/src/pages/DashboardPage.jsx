@@ -77,20 +77,20 @@ const DashboardPage =()=>{
         <div className="flex flex-col items-center h-full lg:items-start lg:flex-row lg:justify-center">
         <div className="w-[90%] h-full lg:w-2/5 mt-4 lg:mt-0">
             <h2 className="text-center text-xl font-semibold">Weekly Wellbeing Scores</h2>
-        <div className={`${theme.backgroundCard} pt-6 pb-2 px-4 rounded-md mt-4 flex flex-col justify-center`}>
+        <div className={`${theme.backgroundCard} pt-6 pb-2 px-4 rounded-md mt-4 flex flex-col justify-center shadow-lg`}>
             <BarCharts data={scores} maxValue={max} />
             </div>
         </div>
         <div className="w-[90%] h-full lg:w-2/5 mt-4 lg:mt-0 lg:ml-4 ">
             <h2 className="text-center text-xl font-semibold">Wellbeing Recommendations</h2>
-            <div className={`${theme.backgroundCard} h-1/2 p-6 rounded-md mt-4 `} style={{ height: '225px', overflowY: 'auto' }}>
+            <div className={`${theme.backgroundCard} h-1/2 p-6 rounded-md mt-4 shadow-lg`} style={{ height: '225px', overflowY: 'auto' }}>
                 <p className="text-black">{recommendation}</p>
             </div>
         </div>
         </div>
         <div  className="w-[90%] mx-auto mt-4 lg:w-2/5 ">
             <h2 className="text-center text-xl font-semibold">Daily Streak</h2>
-            <div className={`${theme.backgroundCard} h-1/2 text-xl p-4 font-bold rounded-md mt-4 `}>
+            <div className={`${theme.backgroundCard} h-1/2 text-xl p-4 font-bold rounded-md mt-4 shadow-lg`}>
                 <p className="text-black text-center">{dailyStreak} Days<FontAwesomeIcon icon={faFire} size="xl" className="ml-2 text-red-500" /></p>
             </div>
         </div>
