@@ -14,27 +14,32 @@ const JournalEntries = ({ journals, selectedEntry, onEntrySelect }) => {
     };
 
     return (
-        <div className="w-1/4 h-full border-r border-gray-200 p-4 overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Journal Entries</h3>
-            <div className="space-y-2">
-                {journals.map((entry) => (
-                    <div
-                        key={entry._id}
-                        onClick={() => onEntrySelect(entry)}
-                        className={`p-3 rounded-lg cursor-pointer ${
-                            selectedEntry?._id === entry._id
-                                ? 'bg-violet-100'
-                                : 'hover:bg-gray-100'
-                        }`}
-                    >
-                        <p className="font-medium">
+        <div className="h-full overflow-y-auto px-4 py-2">
+            {journals.map((entry) => (
+                <div
+                    key={entry._id}
+                    onClick={() => onEntrySelect(entry)}
+                    className={`p-4 mb-3 rounded-lg cursor-pointer transition-colors
+                        ${selectedEntry?._id === entry._id
+                            ? 'bg-violet-100 border-violet-300'
+                            : 'hover:bg-gray-50 border-gray-200'}
+                        border
+                    `}
+                >
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="font-semibold text-sm text-gray-700">
                             {new Date(entry.date).toLocaleDateString()}
-                            {isToday(entry.date) && " (Today)"}
+                            {isToday(entry.date) && 
+                                <span className="ml-2 text-violet-600 text-xs font-bold">(Today)</span>
+                            }
                         </p>
-                        <p className="text-sm text-gray-600 truncate">{entry.content}</p>
                     </div>
-                ))}
-            </div>
+                    <p className="text-sm text-gray-600 line-clamp-2">{entry.content}</p>
+                </div>
+            ))}
+            {journals.length === 0 && (
+                <p className="text-center text-gray-500 mt-4">No journal entries yet</p>
+            )}
         </div>
     );
 };
