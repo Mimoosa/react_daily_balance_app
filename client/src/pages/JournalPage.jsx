@@ -121,90 +121,113 @@ const JournalPage = () => {
      */
 
     return (
-        <div className={`h-full w-full ${theme.background} flex`}>
-            {/* Sidebar with Journal Entries */}
-            <JournalEntries 
-                journals={journals}
-                selectedEntry={selectedEntry}
-                onEntrySelect={handleEntrySelect}
-            />
+        <div className={`min-h-screen w-full ${theme.background}`}>
+            {/* Main content area */}
+            <div className="flex flex-col-reverse lg:flex-row h-full">
+                {/* Journal entries section */}
+                <div className="lg:w-64 border-t lg:border-t-0 lg:border-r border-gray-200">
+                    {/* Desktop view - side panel */}
+                    <div className="hidden lg:block h-full">
+                        <div className="border-b border-gray-200 p-4">
+                            <h3 className="font-bold text-lg text-gray-800">Journal Entries</h3>
+                        </div>
+                        <JournalEntries 
+                            journals={journals}
+                            selectedEntry={selectedEntry}
+                            onEntrySelect={handleEntrySelect}
+                        />
+                    </div>
 
-            {/* Journal Entry Form */}
-            <div className="flex-1 p-6">
-                <h2 className="text-4xl font-bold text-center mt-4 mb-6">
-                    {isEditing ? 'Edit Journal Entry' : 'New Journal Entry'}
-                </h2>
-                
-                {error && (
-                    <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
-                        {error}
-                    </div>
-                )}
-                
-                <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
-                    <textarea
-                        className={`w-full h-48 p-3 border rounded-lg focus:outline-none bg-white text-black
-                            ${error ? 'border-red-500' : 'border-black'}`}
-                        placeholder="How was your day? Share your activities and experiences..."
-                        value={content}
-                        onChange={(e) => {
-                            setContent(e.target.value);
-                            setError('');
-                        }}
-                        minLength={10}
-                    />
-                    
-                    <div className="flex gap-2">
-                        {isEditing ? (
-                            <>
-                                <button
-                                    type="button"
-                                    onClick={handleUpdate}
-                                    disabled={loading}
-                                    className="flex-1 mt-4 bg-violet-700 text-white py-2 px-4 rounded-lg hover:bg-violet-900 disabled:bg-gray-400"
-                                >
-                                    {loading ? 'Updating...' : 'Update Entry'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsEditing(false);
-                                        setSelectedEntry(null);
-                                        setContent('');
-                                        setAnalysis(null);
-                                    }}
-                                    className="mt-4 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600"
-                                >
-                                    Cancel
-                                </button>
-                            </>
-                        ) : (
-                            <button
-                                type="submit"
-                                disabled={loading || content.length < 10}
-                                className="flex-1 mt-4 bg-violet-700 text-white py-2 px-4 rounded-lg hover:bg-violet-900 disabled:bg-gray-400"
-                            >
-                                {loading ? 'Analyzing...' : 'Analyze My Day'}
-                            </button>
-                        )}
-                    </div>
-                </form>
-                
-                {analysis && (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                        <h3 className="font-bold text-lg mb-2">Analysis</h3>
-                        <p><strong>Mood:</strong> {analysis.mood}</p>
-                        <p><strong>Summary:</strong> {analysis.summary}</p>
-                        <div className="mt-2">
-                            <strong>Suggestions:</strong>
-                            <ul className="list-disc ml-5">
-                                {analysis.suggestions.map((suggestion, index) => (
-                                    <li key={index}>{suggestion}</li>
-                                ))}
-                            </ul>
+                    {/* Mobile view - bottom section */}
+                    <div className="lg:hidden mt-8">
+                        <div className="p-4">
+                            <h3 className="font-bold text-lg text-gray-800 mb-4">Previous Entries</h3>
+                            <JournalEntries 
+                                journals={journals}
+                                selectedEntry={selectedEntry}
+                                onEntrySelect={handleEntrySelect}
+                            />
                         </div>
                     </div>
-                )}
+                </div>
+
+                {/* Journal input and analysis section */}
+                <div className="flex-1 p-4 lg:p-6">
+                    <h2 className="text-3xl font-bold text-center mt-2 mb-4">
+                        {isEditing ? 'Edit Journal Entry' : 'New Journal Entry'}
+                    </h2>
+                    
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
+                            {error}
+                        </div>
+                    )}
+                    
+                    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
+                        <textarea
+                            className={`w-full h-48 p-3 border rounded-lg focus:outline-none bg-white text-black
+                                ${error ? 'border-red-500' : 'border-black'}`}
+                            placeholder="How was your day? Share your activities and experiences..."
+                            value={content}
+                            onChange={(e) => {
+                                setContent(e.target.value);
+                                setError('');
+                            }}
+                            minLength={10}
+                        />
+                        
+                        <div className="flex gap-2">
+                            {isEditing ? (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={handleUpdate}
+                                        disabled={loading}
+                                        className="flex-1 mt-4 bg-violet-700 text-white py-2 px-4 rounded-lg hover:bg-violet-900 disabled:bg-gray-400"
+                                    >
+                                        {loading ? 'Updating...' : 'Update Entry'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsEditing(false);
+                                            setSelectedEntry(null);
+                                            setContent('');
+                                            setAnalysis(null);
+                                        }}
+                                        className="mt-4 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600"
+                                    >
+                                        Cancel
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    type="submit"
+                                    disabled={loading || content.length < 10}
+                                    className="flex-1 mt-4 bg-violet-700 text-white py-2 px-4 rounded-lg hover:bg-violet-900 disabled:bg-gray-400"
+                                >
+                                    {loading ? 'Analyzing...' : 'Analyze My Day'}
+                                </button>
+                            )}
+                        </div>
+                    </form>
+                    
+                    {analysis && (
+                        <div className="mt-6 p-4 bg-gray-50 rounded-lg max-w-2xl mx-auto">
+                            <h3 className="font-bold text-lg mb-2">Analysis</h3>
+                            <p><strong>Mood:</strong> {analysis.mood}</p>
+                            <p><strong>Summary:</strong> {analysis.summary}</p>
+                            <div className="mt-2">
+                                <strong>Suggestions:</strong>
+                                <ul className="list-disc ml-5">
+                                    {analysis.suggestions.map((suggestion, index) => (
+                                        <li key={index}>{suggestion}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
