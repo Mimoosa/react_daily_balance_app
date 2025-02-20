@@ -15,6 +15,7 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const connectDB = require('./config/db');
 
@@ -33,6 +34,7 @@ app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working!' });
 });
 app.use('/api/users', userRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);

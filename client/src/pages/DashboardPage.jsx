@@ -3,14 +3,40 @@ import {useState, useEffect} from 'react';
 import { themes } from '../contexts/themeConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faFire} from '../contexts/icons'
+import { dashboardService } from '../services/api';
 
 
 const DashboardPage =()=>{
   const theme = themes.light; 
+  const [recommendation, setRecommendation] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const scores = {
+    Physical: 120,
+    Psychological: 90,
+    Social: 50,
+    Cognitive: 110
+  };
+
+  const fetchRecommendation = async (scores) => {
+    try {
+        const data = await dashboardService.recommendation(scores);
+        setRecommendation(data);
+    } catch (error) {
+        setError('Failed to fetch recommendation');
+    } finally {
+        setLoading(false); 
+    }
+  };
+
+  useEffect(() => {
+    fetchRecommendation(scores);
+  }, []);
+
    /*  
     const [scores, setScores] = useState({});
     const [dailyStreak, setDailyStreak] = useState(0);
-    const [recommendation, setRecommendation] = useState("");
     const [maxValue, setMaxValue] = useState(100);
 
     useEffect(()=>{
@@ -21,20 +47,6 @@ const DashboardPage =()=>{
                 setScores(data);
                 const max = Math.max(...Object.values(data));
                 setMaxValue(max);
-            }
-            catch(error){
-                console.error(error);
-            }
-        }
-
-    }, []);
-    
-    useEffect(()=>{
-        async function fetchDailyStreakData(){
-            try{
-                const res = await fetch("");
-                const data = await res.json();
-                setDailyStreak(data);
             }
             catch(error){
                 console.error(error);
@@ -59,14 +71,7 @@ const DashboardPage =()=>{
  */
     const dailyStreak = 5;
     
-    const scores = {
-        Physical: 120,
-        Psychological: 90,
-        Social: 50,
-        Cognitive: 110
-    }
 
-    const recommendation = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Architecto in voluptatibus ipsam enim harum, voluptatem asperiores ratione provident eius non sunt nisi, iure recusandae obcaecati, numquam quidem illum ipsum perferendis. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi, nesciunt id a doloremque illo dolore mollitia iure, error corrupti reprehenderit, sequi eligendi eius debitis inventore excepturi illum. Vitae, aut nostrum. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eum, deserunt iure commodi aliquam autem pariatur, aliquid deleniti accusamus enim dolor laborum neque voluptate molestiae. Nostrum temporibus incidunt blanditiis totam non!"
 
     const max = Math.max(...Object.values(scores));
     
@@ -84,7 +89,17 @@ const DashboardPage =()=>{
         <div className="w-[90%] h-full lg:w-2/5 mt-4 lg:mt-0 lg:ml-4 ">
             <h2 className="text-center text-xl font-semibold">Wellbeing Recommendations</h2>
             <div className={`${theme.backgroundCard} h-1/2 p-6 rounded-md mt-4 shadow-lg`} style={{ height: '225px', overflowY: 'auto' }}>
-                <p className="text-black">{recommendation}</p>
+            {loading ? ( 
+              <p className="text-black">Fetching recommendation... Please wait.</p>
+            ) : error ? ( 
+              <p className="text-red-500">{error}</p>
+            ) : (
+              <>
+                <p className="text-black">The way to improve your <strong>{recommendation.category}</strong> field is as follows:</p>
+                <p className="text-black">{recommendation.advice}</p>
+                <p className="text-black">Let's strive for a balanced and fulfilling life together with Daily Balance!</p>  
+              </>
+            )}
             </div>
         </div>
         </div>
