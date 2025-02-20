@@ -103,6 +103,44 @@ const journalService = {
     }
 };
 
+const dashboardService = {
+  
+    recommendation: async (scores) => {
+        const response = await fetch(`${API_URL}/dashboard/getRecommendation`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(scores),
+        });
+        return handleResponse(response);
+    },
+};
+
+const ActicityReportService = {
+    getTodaysEntry: async () => {
+        const response = await fetch(`${API_URL}/activityRepo/journal`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+        });
+        return handleResponse(response);
+    },
+
+    getActivities: async (diaryEntry) => {
+        const response = await fetch(`${API_URL}/activityRepo/activity`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({entry: diaryEntry}),
+        });
+        return handleResponse(response);
+    },
+};
+
 /**
  * Handles API response and throws error if response is not ok
  * @param {Response} response - Fetch API response object
@@ -118,4 +156,4 @@ const handleResponse = async (response) => {
     return data;
 };
 
-export { authService, journalService };
+export { authService, journalService, dashboardService, ActicityReportService };
