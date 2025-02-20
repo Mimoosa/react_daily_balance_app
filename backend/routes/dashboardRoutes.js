@@ -3,6 +3,6 @@ const router = express.Router();
 const { generateResponse } = require('../controllers/dashboardController');
 const { protect } = require('../middleware/auth');
 
-router.post('/getRecommendation', generateResponse);
+router.post('/getRecommendation', protect, generateResponse);
 
 module.exports = router;

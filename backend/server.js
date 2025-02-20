@@ -16,6 +16,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const activityReportRoutes = require('./routes/activityReportRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const connectDB = require('./config/db');
 
@@ -35,6 +36,7 @@ app.get('/api/test', (req, res) => {
 });
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/activityRepo', activityReportRoutes);
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
