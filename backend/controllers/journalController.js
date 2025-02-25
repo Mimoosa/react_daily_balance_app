@@ -11,7 +11,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
  * @constant {GoogleGenerativeAI}
  */
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); // API key from environment
-const model = genAI.getGenerativeModel({ model: "gemini-pro" }); // Use Gemini Pro model ???
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-pro-exp-02-05" }); // Use Gemini Pro model ???
 
 /**
  * Analyzes journal content using Gemini AI
@@ -23,7 +23,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-pro" }); // Use Gemini P
  */
 const analyzeJournalEntry = async (content) => {
     const prompt = `
-    Analyze this journal entry and provide a response in the following JSON format:
+    Analyze this journal entry and provide a response in the following JSON format without any markdown formatting or code blocks:
     {
         "mood": "brief 1-2 word mood description",
         "summary": "2-3 sentence summary of the entry",
@@ -35,7 +35,21 @@ const analyzeJournalEntry = async (content) => {
 
     try {
         const result = await model.generateContent(prompt);
-        const analysisText = result.response.text();
+        let analysisText = result.response.text();
+        
+        // Puhdista vastaus mahdollisista markdown-merkinnöistä
+        // Poista ```json ja ``` merkinnät
+        analysisText = analysisText.replace(/```json|```/g, '').trim();
+        
+        // Etsi ensimmäinen { merkki ja viimeinen } merkki
+        const startIndex = analysisText.indexOf('{');
+        const endIndex = analysisText.lastIndexOf('}');
+        
+        if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+            // Ota vain JSON-osa vastauksesta
+            analysisText = analysisText.substring(startIndex, endIndex + 1);
+        }
+        
         return JSON.parse(analysisText);
     } catch (error) {
         console.error('Gemini API Error:', error);
@@ -170,6 +184,24 @@ const updateJournal = async (req, res) => {
 
         // Get new AI analysis
         const analysis = await analyzeJournalEntry(content);
+        
+        /**
+         * FEATURE: Reset points when journal content is updated
+         * 
+         * When a user updates their journal entry, we need to reset the points
+         * so that they can be recalculated based on the new content.
+         * This ensures that the points accurately reflect the updated journal content.
+         * 
+         * The points will be recalculated when the user visits the activity report page.
+         * The activityReportController.saveActivityPoints function will handle
+         * subtracting old points and adding new points to the user's total.
+         */
+        if (journal.points && Object.keys(journal.points).length > 0) {
+            // Reset points to trigger a new calculation
+            journal.points = {};
+            // Also clear any activities that were previously calculated
+            journal.activities = undefined;
+        }
         
         journal.content = content;
         journal.analysis = {

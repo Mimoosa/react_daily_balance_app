@@ -6,7 +6,7 @@ const registerUser = async (req, res) => {
         const { username, email, password } = req.body;
         const user = await User.create({ username, email, password });
         res.status(201).json({
-            data: {  // Wrap in data object to match login response
+            data: { 
                 id: user._id,
                 username: user.username,
                 token: generateToken(user._id)
@@ -45,6 +45,31 @@ const loginUser = async (req, res) => {
     }
 };
 
+/**
+ * Get user's accumulated points
+ * @async
+ * @function
+ * @param {Object} req - Express request object
+ * @param {Object} req.user - Authenticated user object
+ * @param {string} req.user.id - User ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
+const getUserPoints = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('points');
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json({ points: user.points });
+    } catch (error) {
+        console.error('Error fetching user points:', error);
+        res.status(400).json({ error: error.message });
+    }
+};
+
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '30d',
@@ -53,5 +78,6 @@ const generateToken = (id) => {
 
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    getUserPoints
 };

@@ -36,10 +36,20 @@ const DailyActivityReport = () => {
   const fetchJournal = async () => {
     try {
         const data = await ActicityReportService.getTodaysEntry();
+        setJournal(data.content);
         
-        setJournal(data);
+        // If points already exist, use them instead of generating new ones
+        if (data.points) {
+            setTotalPoints(data.points);
+            setActivities(data.activities || []);
+            setLoading(false);
+        } else {
+            // Only fetch activities if points don't exist
+            fetchActivities(data.content);
+        }
     } catch (error) {
         setError('Failed to fetch journal entries');
+        setLoading(false);
     }
   };
 
@@ -70,7 +80,14 @@ const DailyActivityReport = () => {
           return acc;
         }, {});
       };
-      setTotalPoints(calculateTotalPoints(activities));
+      const points = calculateTotalPoints(activities);
+      setTotalPoints(points);
+      
+      // Save points to database
+      ActicityReportService.savePoints(points).catch(error => {
+          console.error('Failed to save points:', error);
+      });
+      
       setLoading(false); 
     }
   }, [activities]);

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from "../contexts/ThemeContext";
 import { journalService } from '../services/api';
 import JournalEntries from '../components/journal/JournalEntries';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * JournalPage Component
@@ -24,6 +25,8 @@ const JournalPage = () => {
     const [journals, setJournals] = useState([]);
     const [selectedEntry, setSelectedEntry] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [showActivityPrompt, setShowActivityPrompt] = useState(false);
+    const navigate = useNavigate();
 
     /**
      * Fetches user's journal entries on component mount
@@ -106,11 +109,20 @@ const JournalPage = () => {
             setAnalysis(data.analysis);
             await fetchJournals();
             setIsEditing(false);
+            setShowActivityPrompt(true);
         } catch (error) {
             setError(error.message || 'Failed to update entry');
         } finally {
             setLoading(false);
         }
+    };
+
+    /**
+     * Navigates to the activity report page
+     * @function
+     */
+    const goToActivityReport = () => {
+        navigate('/activity-report');
     };
 
     /**
@@ -160,6 +172,26 @@ const JournalPage = () => {
                     {error && (
                         <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
                             {error}
+                        </div>
+                    )}
+                    
+                    {showActivityPrompt && (
+                        <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg flex justify-between items-center">
+                            <p>Päiväkirjamerkintä päivitetty onnistuneesti! Haluatko tarkistaa päivitetyt pisteet aktiivisuusraportista?</p>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={goToActivityReport}
+                                    className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+                                >
+                                    Siirry aktiivisuusraporttiin
+                                </button>
+                                <button 
+                                    onClick={() => setShowActivityPrompt(false)}
+                                    className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
+                                >
+                                    Sulje
+                                </button>
+                            </div>
                         </div>
                     )}
                     

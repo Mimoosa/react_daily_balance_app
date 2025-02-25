@@ -118,6 +118,26 @@ const dashboardService = {
     },
 };
 
+/**
+ * User service for managing user data
+ * @namespace
+ */
+const userService = {
+    /**
+     * Retrieves user's total accumulated points
+     * @returns {Promise<Object>} User's total points by category
+     * @throws {Error} If fetching fails
+     */
+    getTotalPoints: async () => {
+        const response = await fetch(`${API_URL}/users/points`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    }
+};
+
 const ActicityReportService = {
     getTodaysEntry: async () => {
         const response = await fetch(`${API_URL}/activityRepo/journal`, {
@@ -139,6 +159,27 @@ const ActicityReportService = {
         });
         return handleResponse(response);
     },
+
+    savePoints: async (points) => {
+        const response = await fetch(`${API_URL}/activityRepo/points`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ points }),
+        });
+        return handleResponse(response);
+    },
+
+    getWeeklyPoints: async () => {
+        const response = await fetch(`${API_URL}/activityRepo/weekly-points`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+        });
+        return handleResponse(response);
+    },
 };
 
 /**
@@ -156,4 +197,4 @@ const handleResponse = async (response) => {
     return data;
 };
 
-export { authService, journalService, dashboardService, ActicityReportService };
+export { authService, journalService, dashboardService, ActicityReportService, userService };

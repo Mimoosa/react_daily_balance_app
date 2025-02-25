@@ -21,6 +21,12 @@ const journalSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
         required: true
+    },
+    points: {
+        Physical: { type: Number, default: 0 },
+        Psychological: { type: Number, default: 0 },
+        Social: { type: Number, default: 0 },
+        Cognitive: { type: Number, default: 0 }
     }
 }, {
     timestamps: true

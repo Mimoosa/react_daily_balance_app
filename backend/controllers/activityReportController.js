@@ -1,8 +1,8 @@
 const Journal = require('../models/Journal');
-
+const ActivityPoints = require('../models/ActivityPoints');
+const User = require('../models/User');
 
 const model = require("../models/geminiModel");
-
 
 const getTodaysJournal = async (req, res) => {
 
@@ -20,10 +20,17 @@ const getTodaysJournal = async (req, res) => {
                 $lt: tomorrow
             } 
         });
+        
         if (!todaysJournal) {
             return res.status(404).json({ error: "Today's journal entry not found" });
         }
-        res.json(todaysJournal.content);
+
+        // Return both content and points if they exist
+        res.json({
+            content: todaysJournal.content,
+            points: todaysJournal.points || null,
+            activities: todaysJournal.activities || null
+        });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -121,8 +128,117 @@ const generateResponse = async (req, res) => {
   }
 };
 
+/**
+ * Saves activity points for today's journal entry and updates user's total points
+ * @async
+ * @function
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {Object} req.body.points - Points by category
+ * @param {Object} req.user - Authenticated user object
+ * @param {string} req.user.id - User ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ * @throws {Error} If saving fails or journal entry not found
+ */
+const saveActivityPoints = async (req, res) => {
+    try {
+        const { points } = req.body;
+        const userId = req.user.id;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
+        const journal = await Journal.findOne({
+            user: userId,
+            date: {
+                $gte: today,
+                $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+            }
+        });
 
+        if (!journal) {
+            return res.status(404).json({ error: "Today's journal entry not found" });
+        }
 
+        /**
+         * FEATURE: Handle updating existing points
+         * 
+         * This section handles the case where a journal entry is updated and
+         * new points need to be calculated. We need to:
+         * 1. Check if we're updating existing points
+         * 2. If updating, subtract the old points from the user's total
+         * 3. Add the new points to the user's total
+         * 
+         * This ensures that the user's total points remain accurate when
+         * journal entries are updated and points are recalculated.
+         */
+        
+        // Check if this is an update to existing points
+        const isUpdating = journal.points && Object.keys(journal.points).length > 0;
+        
+        // If updating existing points, subtract old points from user's total
+        if (isUpdating) {
+            const user = await User.findById(userId);
+            if (user) {
+                // Subtract the old points from the user's total points
+                Object.keys(journal.points).forEach(category => {
+                    if (user.points[category] !== undefined) {
+                        user.points[category] -= journal.points[category];
+                        // Ensure we don't go below 0
+                        if (user.points[category] < 0) user.points[category] = 0;
+                    }
+                });
+                await user.save();
+            }
+        }
+        
+        // Update journal with new points
+        journal.points = points;
+        await journal.save();
+        
+        // Update user's total points with new points
+        const user = await User.findById(userId);
+        if (user) {
+            // Add the new points to the user's existing points
+            Object.keys(points).forEach(category => {
+                if (user.points[category] !== undefined) {
+                    user.points[category] += points[category];
+                } else {
+                    user.points[category] = points[category];
+                }
+            });
+            await user.save();
+        }
 
-module.exports = {getTodaysJournal, generateResponse};
+        res.json(journal);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+const getWeeklyPoints = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+
+        const journals = await Journal.find({
+            user: userId,
+            date: { $gte: weekAgo },
+            points: { $exists: true }
+        })
+        .select('date points')
+        .sort('-date');
+
+        res.json(journals);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
+module.exports = {
+    getTodaysJournal,
+    generateResponse,
+    saveActivityPoints,
+    getWeeklyPoints
+};

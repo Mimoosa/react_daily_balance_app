@@ -23,7 +23,13 @@ const userSchema = new mongoose.Schema({
     journals: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Journal'
-    }]
+    }],
+    points: {
+        Physical: { type: Number, default: 0 },
+        Psychological: { type: Number, default: 0 },
+        Social: { type: Number, default: 0 },
+        Cognitive: { type: Number, default: 0 }
+    }
 }, {
     timestamps: true
 });
