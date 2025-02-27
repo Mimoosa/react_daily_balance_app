@@ -4,6 +4,19 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDumbbell, faBrain, faUsers, faHeart } from '../contexts/icons';
 import { ActicityReportService } from '../services/api';
 
+const transformActivities = (activities) => {
+  const transformed = {};
+
+  activities.forEach((activity) => {
+    if (!transformed[activity.text]) {
+      transformed[activity.text] = { text: activity.text, categories: [] };
+    }
+    transformed[activity.text].categories.push({ category: activity.category, points: activity.points });
+  });
+
+  return Object.values(transformed);
+};
+
 const DailyActivityReport = () => {
   const theme = themes.light;
   const [journal, setJournal] = useState(JSON.parse(localStorage.getItem("journal")) || false);
@@ -11,7 +24,6 @@ const DailyActivityReport = () => {
   const [error, setError] = useState('');
   const [totalPoints, setTotalPoints] = useState({});
   const [loading, setLoading] = useState(true);
-  
 
   const labelIcons = {
     Physical: faDumbbell,
@@ -28,16 +40,6 @@ const DailyActivityReport = () => {
         fetchActivities(data.content);
       }
       localStorage.setItem("journal", JSON.stringify(data.content));
-
-   /*    // If points already exist, use them instead of generating new ones
-      if (data.points) {
-        console.log("yes")
-        setTotalPoints(data.points);
-        setLoading(false);
-      } else {
-        // Only fetch activities if points don't exist
-        fetchActivities(data.content);
-      } */
     } catch (error) {
       setError('Failed to fetch journal entries');
       setLoading(false);
@@ -49,7 +51,7 @@ const DailyActivityReport = () => {
     try {
       const data = await ActicityReportService.getActivities(journal);
       localStorage.setItem("activities", JSON.stringify(data)); 
-      setActivities(data)
+      setActivities(data);
       setLoading(false);
     } catch (error) {
       setError('Failed to fetch activities');
@@ -87,6 +89,8 @@ const DailyActivityReport = () => {
     }
   }, [activities]);
 
+  const transformedActivities = transformActivities(activities);
+
   return (
     <div className="h-full">
       <div className="flex flex-col items-center mt-6">
@@ -102,13 +106,15 @@ const DailyActivityReport = () => {
                 <p className="text-red-500">{error}</p>
               ) : (
                 <ul>
-                  {activities.map((activity, index) => (
+                  {transformedActivities.map((activity, index) => (
                     <li key={index} className="mb-2">
                       <p className="text-black">{activity.text}</p>
-                      <p className={`${activity.points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        <FontAwesomeIcon icon={labelIcons[activity.category]} size="lg" className="text-black mr-2" />
-                        {activity.category}: {activity.points} points
-                      </p>
+                      {activity.categories.map((category, catIndex) => (
+                        <p key={catIndex} className={`${category.points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <FontAwesomeIcon icon={labelIcons[category.category]} size="lg" className="text-black mr-2" />
+                          {category.category}: {category.points} points
+                        </p>
+                      ))}
                     </li>
                   ))}
                 </ul>

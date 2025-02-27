@@ -12,6 +12,8 @@ const Navbar = ({ isOpen, setIsOpen }) => {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('username');
+        localStorage.removeItem('journal');
+        localStorage.removeItem('activities');
         setIsOpen(false);
         navigate('/');
     };
@@ -55,7 +57,9 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                       }`}>
                       Dashboard
                     </NavLink>
-                    <NavLink 
+                  </li>
+                  <li className="mt-4 lg:mt-0">
+                  <NavLink 
                       to="/activity" onClick={() => { setIsOpen(!isOpen); }}
                       className={({ isActive }) => `text-white p-3 hover:bg-violet-900 rounded-md transition duration-200 ${
                         isActive ? theme.backgroundActive : theme.backgroundViolet
