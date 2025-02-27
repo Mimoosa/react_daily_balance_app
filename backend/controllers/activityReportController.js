@@ -39,7 +39,7 @@ const getTodaysJournal = async (req, res) => {
 const generatePoints = async (diaryEntry) => {
     console.log(diaryEntry)
     const prompt = `
-    Gemini, please analyze the following diary entry and categorize each activity into one of the following categories: Physical, Cognitive, Social, and Psychological. Assign points to each activity based on the criteria provided below. Here is the diary entry:
+  Gemini, please analyze the following diary entry and categorize each activity into one of the following categories: Physical, Cognitive, Social, and Psychological. Assign points to each activity based on the criteria provided below. Here is the diary entry:
   
     ${diaryEntry}
   
@@ -71,7 +71,11 @@ const generatePoints = async (diaryEntry) => {
   - Negative activities:
     - Overindulgence in alcohol or unhealthy behaviors: -30 points (Physical)
     - If the entry mentions spending most of the day sitting: -50 points (Physical)
+  - Eating habits:
+    - Regular meals (e.g., breakfast, lunch, dinner): 30 points (Physical)
+    - Consumption of harmful substances (e.g., alcohol, coffee, energy drinks, tobacco): -30 points (Physical)
 
+    Ignore sentences related to weather or unrelated to the four categories.
   
     Please provide the output in JSON format with the following structure:
     [
