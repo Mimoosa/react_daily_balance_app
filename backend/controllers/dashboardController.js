@@ -46,11 +46,11 @@ const generateRecomendation = async (
 
 const generateResponse = async (req, res) => {
   try {
+
     const { Physical, Psychological, Social, Cognitive } = req.body;
-    if (!Physical || !Psychological || !Social || !Cognitive) {
+    if (Physical === undefined || Psychological === undefined || Social === undefined || Cognitive === undefined) {
       return res.status(400).json({ message: "All fields are required." });
     }
-
    
     const markdownResponse = await generateRecomendation(
       Physical,
