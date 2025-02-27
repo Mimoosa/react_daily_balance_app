@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { themes } from '../contexts/themeConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDumbbell, faBrain, faUsers, faHeart } from '../contexts/icons';
@@ -89,7 +89,7 @@ const DailyActivityReport = () => {
     }
   }, [activities]);
 
-  const transformedActivities = transformActivities(activities);
+  const transformedActivities = useMemo(() => transformActivities(activities), [activities]);
 
   return (
     <div className="h-full">
