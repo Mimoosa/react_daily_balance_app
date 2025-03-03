@@ -1,4 +1,3 @@
-
 /*
 Change colors to match our design
 
@@ -7,6 +6,7 @@ Change colors to match our design
 #ffffff - text
 #0d557e - blue
 #0b3c58 - hover blue
+--
 #B1A3FF - bar chart color 1
 #818DED - bar chart color 2
 #6D65CC - bar chart color 3
@@ -32,15 +32,33 @@ export const themes = {
         barChart2: 'bg-[#818DED]',
         barChart3: 'bg-[#6D65CC]',
         barChart4: 'bg-[#494393]',
+        // Adding new variables to light mode without changing existing colors
+        textSecondary: 'text-gray-600', // Secondary text color
+        backgroundHover: 'hover:bg-violet-900', // Hover state
+        inputBackground: 'bg-white', // Form input background
+        cardShadow: 'shadow-gray-200/50', // Custom shadow
+        divider: 'border-gray-200', // Divider color
     },
     dark: {
-        primary: 'text-white', // Main text color
-        secondary: 'text-[#0d557e]', // Secondary text color
-        alert: 'text-red-400', // Alerts and errors
-        highlight: 'text-blue-400', // Links and highlights
-        background: 'bg-gray-900', // Background color
-        background2: 'bg-[#0d557e]', // Secondary background (e.g., cards)
-        border: 'border-gray-600', // Borders
+        textWhite: 'text-gray-100', // Slightly off-white for better contrast
+        textViolet: 'text-violet-300', // Lighter violet for better visibility on dark
+        alert: 'text-red-400', // Brighter red for dark mode
+        highlight: 'text-violet-400', // Violet highlight instead of blue
+        backgroundViolet: 'bg-violet-900', // Slightly lighter violet for better contrast
+        backgroundActive: 'bg-violet-600', // Brighter active state
+        backgroundCard: 'bg-gray-800', // Dark card background
+        backgroundWhite: 'bg-gray-900', // Dark background instead of white
+        border: 'border-gray-700', // Darker borders
+        barChart1: 'bg-[#C4B9FF]', // Brighter chart colors for dark mode
+        barChart2: 'bg-[#9AA3FF]',
+        barChart3: 'bg-[#8680E6]',
+        barChart4: 'bg-[#6A64CC]',
+        // Additional dark mode specific variables
+        textSecondary: 'text-gray-400', // Secondary text color
+        backgroundHover: 'hover:bg-violet-800', // Hover state
+        inputBackground: 'bg-gray-700', // Form input background
+        cardShadow: 'shadow-violet-900/20', // Custom shadow with violet tint
+        divider: 'border-gray-700', // Divider color
     },
 };
 

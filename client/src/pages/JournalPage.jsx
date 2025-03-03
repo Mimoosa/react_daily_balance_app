@@ -3,6 +3,10 @@ import { useTheme } from "../contexts/ThemeContext";
 import { journalService } from '../services/api';
 import JournalEntries from '../components/journal/JournalEntries';
 import { useNavigate } from 'react-router-dom';
+import JournalTips from '../components/journal/JournalTips';
+import '@fortawesome/fontawesome-svg-core/styles.css';
+import { config } from '@fortawesome/fontawesome-svg-core';
+config.autoAddCss = false;
 
 /**
  * JournalPage Component
@@ -133,15 +137,15 @@ const JournalPage = () => {
      */
 
     return (
-        <div className={`min-h-screen w-full ${theme.background}`}>
+        <div className={`min-h-screen w-full ${theme.backgroundWhite}`}>
             {/* Main content area */}
             <div className="flex flex-col-reverse lg:flex-row h-full">
                 {/* Journal entries section */}
-                <div className="lg:w-64 border-t lg:border-t-0 lg:border-r border-gray-200">
+                <div className={`lg:w-64 border-t lg:border-t-0 lg:border-r ${theme.divider || theme.border}`}>
                     {/* Desktop view - side panel */}
                     <div className="hidden lg:block h-full">
-                        <div className="border-b border-gray-200 p-4">
-                            <h3 className="font-bold text-lg text-gray-800">Journal Entries</h3>
+                        <div className={`border-b ${theme.divider || theme.border} p-4`}>
+                            <h3 className={`font-bold text-lg ${theme.textViolet}`}>Journal Entries</h3>
                         </div>
                         <JournalEntries 
                             journals={journals}
@@ -153,7 +157,7 @@ const JournalPage = () => {
                     {/* Mobile view - bottom section */}
                     <div className="lg:hidden mt-8">
                         <div className="p-4">
-                            <h3 className="font-bold text-lg text-gray-800 mb-4">Previous Entries</h3>
+                            <h3 className={`font-bold text-lg ${theme.textViolet} mb-4`}>Previous Entries</h3>
                             <JournalEntries 
                                 journals={journals}
                                 selectedEntry={selectedEntry}
@@ -165,48 +169,56 @@ const JournalPage = () => {
 
                 {/* Journal input and analysis section */}
                 <div className="flex-1 p-4 lg:p-6">
-                    <h2 className="text-3xl font-bold text-center mt-2 mb-4">
+                    <h2 className={`text-3xl font-bold text-center mt-2 mb-4 ${theme.textViolet}`}>
                         {isEditing ? 'Edit Journal Entry' : 'New Journal Entry'}
                     </h2>
+
+                    <JournalTips />
                     
                     {error && (
-                        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg">
+                        <div className={`mb-4 p-3 ${theme.alert} bg-red-50 dark:bg-red-900/20 rounded-lg`}>
                             {error}
                         </div>
                     )}
                     
                     {showActivityPrompt && (
-                        <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg flex justify-between items-center">
-                            <p>Päiväkirjamerkintä päivitetty onnistuneesti! Haluatko tarkistaa päivitetyt pisteet aktiivisuusraportista?</p>
+                        <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg flex justify-between items-center">
+                            <p>Journal entry updated successfully! Would you like to check your updated points in the activity report?</p>
                             <div className="flex gap-2">
                                 <button 
                                     onClick={goToActivityReport}
-                                    className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+                                    className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white py-2 px-4 rounded-lg transition-colors"
                                 >
-                                    Siirry aktiivisuusraporttiin
+                                    View Activity Report
                                 </button>
                                 <button 
                                     onClick={() => setShowActivityPrompt(false)}
-                                    className="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
+                                    className="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg transition-colors"
                                 >
-                                    Sulje
+                                    Close
                                 </button>
                             </div>
                         </div>
                     )}
                     
                     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
-                        <textarea
-                            className={`w-full h-48 p-3 border rounded-lg focus:outline-none bg-white text-black
-                                ${error ? 'border-red-500' : 'border-black'}`}
-                            placeholder="How was your day? Share your activities and experiences..."
-                            value={content}
-                            onChange={(e) => {
-                                setContent(e.target.value);
-                                setError('');
-                            }}
-                            minLength={10}
-                        />
+                        <div className="relative">
+                            <textarea
+                                className={`w-full h-48 p-3 border rounded-lg focus:outline-none ${
+                                    error ? 'border-red-500' : theme.border
+                                } ${theme.inputBackground || 'bg-white'} ${theme.textSecondary}`}
+                                placeholder="How was your day? Share your activities and experiences..."
+                                value={content}
+                                onChange={(e) => {
+                                    setContent(e.target.value);
+                                    setError('');
+                                }}
+                                minLength={10}
+                            />
+                            <div className={`absolute bottom-2 right-2 text-sm ${theme.textSecondary || 'text-gray-500'}`}>
+                                {content.length} characters (min. 10)
+                            </div>
+                        </div>
                         
                         <div className="flex gap-2">
                             {isEditing ? (
@@ -215,7 +227,7 @@ const JournalPage = () => {
                                         type="button"
                                         onClick={handleUpdate}
                                         disabled={loading}
-                                        className="flex-1 mt-4 bg-violet-700 text-white py-2 px-4 rounded-lg hover:bg-violet-900 disabled:bg-gray-400"
+                                        className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg disabled:bg-gray-400 dark:disabled:bg-gray-700 transition-colors`}
                                     >
                                         {loading ? 'Updating...' : 'Update Entry'}
                                     </button>
@@ -227,7 +239,7 @@ const JournalPage = () => {
                                             setContent('');
                                             setAnalysis(null);
                                         }}
-                                        className="mt-4 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600"
+                                        className="mt-4 bg-gray-500 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
                                     >
                                         Cancel
                                     </button>
@@ -236,7 +248,7 @@ const JournalPage = () => {
                                 <button
                                     type="submit"
                                     disabled={loading || content.length < 10}
-                                    className="flex-1 mt-4 bg-violet-700 text-white py-2 px-4 rounded-lg hover:bg-violet-900 disabled:bg-gray-400"
+                                    className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg disabled:bg-gray-400 dark:disabled:bg-gray-700 transition-colors`}
                                 >
                                     {loading ? 'Analyzing...' : 'Analyze My Day'}
                                 </button>
@@ -245,21 +257,37 @@ const JournalPage = () => {
                     </form>
                     
                     {analysis && (
-                        <div className="mt-6 p-4 bg-gray-50 rounded-lg max-w-2xl mx-auto">
-                            <h3 className="font-bold text-lg mb-2">Analysis</h3>
-                            <p><strong>Mood:</strong> {analysis.mood}</p>
-                            <p><strong>Summary:</strong> {analysis.summary}</p>
-                            <div className="mt-2">
-                                <strong>Suggestions:</strong>
-                                <ul className="list-disc ml-5">
+                        <div className={`mt-6 p-6 ${theme.backgroundCard} rounded-lg max-w-2xl mx-auto shadow-lg ${theme.cardShadow || ''}`}>
+                            <h3 className={`font-bold text-xl mb-4 ${theme.textViolet}`}>Your Day Analysis</h3>
+                            
+                            <div className="mb-4">
+                                <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Mood</h4>
+                                <p className={`text-lg ${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.mood}</p>
+                            </div>
+                            
+                            <div className="mb-4">
+                                <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Summary</h4>
+                                <p className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.summary}</p>
+                            </div>
+                            
+                            <div>
+                                <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Suggestions for Improving Your Well-being</h4>
+                                <ul className="space-y-2">
                                     {analysis.suggestions.map((suggestion, index) => (
-                                        <li key={index}>{suggestion}</li>
+                                        <li key={index} className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm flex items-start`}>
+                                            <span className={`${theme.textViolet} mr-2`}>•</span>
+                                            {suggestion}
+                                        </li>
                                     ))}
                                 </ul>
                             </div>
+                            
+                            <div className={`mt-4 text-sm ${theme.textSecondary || theme.textViolet}`}>
+                                Analysis created: {new Date(analysis.timestamp).toLocaleString('en-US')}
+                            </div>
                         </div>
                     )}
-                </div>
+                </  div>
             </div>
         </div>
     );
