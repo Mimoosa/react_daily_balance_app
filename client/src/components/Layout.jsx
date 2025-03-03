@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import { Outlet, useLocation } from 'react-router-dom';
-import ThemeToggle from './ThemeToggle';
 
 const Layout = () => {
   const navbarRef = useRef(null);
@@ -40,22 +39,15 @@ const Layout = () => {
   }, []);
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <div ref={navbarRef}>
         <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
       </div>
       <div
         ref={outletRef}
-        style={
-          !outletHeightExceeds
-            ? { height: `calc(100vh - ${navbarHeight}px ${location.pathname !== "/" && location.pathname !== "/login" ? " - 40px" : ""})` }
-            : {} 
-        }
+        className="flex-1"
       >
         <Outlet />
-        {!(location.pathname === "/" || location.pathname === "/login" || location.pathname === "/anotherPath") && (
-          <ThemeToggle />
-        )}
       </div>
     </div>
   );

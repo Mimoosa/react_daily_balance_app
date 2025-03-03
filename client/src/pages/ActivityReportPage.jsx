@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { themes } from '../contexts/themeConfig';
+import { useTheme } from '../contexts/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDumbbell, faBrain, faUsers, faHeart } from '../contexts/icons';
+import { faDumbbell, faBrain, faUsers, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { ActicityReportService } from '../services/api';
 
 const transformActivities = (activities) => {
@@ -18,7 +18,7 @@ const transformActivities = (activities) => {
 };
 
 const DailyActivityReport = () => {
-  const theme = themes.light;
+  const { theme } = useTheme();
   const [journal, setJournal] = useState(JSON.parse(localStorage.getItem("journal")) || false);
   const [activities, setActivities] = useState(JSON.parse(localStorage.getItem("activities") || "[]"));
   const [error, setError] = useState('');
@@ -92,26 +92,30 @@ const DailyActivityReport = () => {
   const transformedActivities = useMemo(() => transformActivities(activities), [activities]);
 
   return (
-    <div className="h-full">
-      <div className="flex flex-col items-center mt-6">
-        <h2 className="text-4xl font-bold">Daily Activity Report</h2>
+    <div className={`min-h-screen flex flex-col ${theme.backgroundWhite}`}>
+      <h2 className={`text-4xl font-bold text-center py-6 ${theme.textViolet}`}>Daily Activity Report</h2>
 
+      <div className="flex flex-col items-center">
         <div className="mt-6 flex flex-col lg:flex-row gap-6">
           <div>
-            <h3 className="text-xl text-center font-semibold mb-3 lg:mt-2">Daily Summary</h3>
-            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px', overflowY: 'auto' }}>
+            <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Daily Summary</h3>
+            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80`} style={{ height: '300px', overflowY: 'auto' }}>
               {loading ? (
-                <p className="text-black">Fetching data... Please wait.</p>
+                <p className={theme.textSecondary}>Fetching data... Please wait.</p>
               ) : error ? (
-                <p className="text-red-500">{error}</p>
+                <p className={theme.alert}>{error}</p>
               ) : (
                 <ul>
                   {transformedActivities.map((activity, index) => (
                     <li key={index} className="mb-2">
-                      <p className="text-black">{activity.text}</p>
+                      <p className={theme.textSecondary}>{activity.text}</p>
                       {activity.categories.map((category, catIndex) => (
-                        <p key={catIndex} className={`${category.points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          <FontAwesomeIcon icon={labelIcons[category.category]} size="lg" className="text-black mr-2" />
+                        <p key={catIndex} className={category.points >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          <FontAwesomeIcon 
+                            icon={labelIcons[category.category]} 
+                            size="lg" 
+                            className={`${theme.textViolet} mr-2`} 
+                          />
                           {category.category}: {category.points} points
                         </p>
                       ))}
@@ -123,18 +127,22 @@ const DailyActivityReport = () => {
           </div>
 
           <div>
-            <h3 className="text-xl text-center font-semibold mb-3 lg:mt-2">Total Points</h3>
-            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px'}}>
+            <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Total Points</h3>
+            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80`} style={{ height: '300px'}}>
               {loading ? (
-                <p className="text-black">Fetching data... Please wait.</p>
+                <p className={theme.textSecondary}>Fetching data... Please wait.</p>
               ) : error ? (
-                <p className="text-red-500">{error}</p>
+                <p className={theme.alert}>{error}</p>
               ) : (
                 <ul>
                   {Object.entries(totalPoints).map(([category, points], index) => (
                     <li key={index} className="mb-2">
-                      <p className={`${points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        <FontAwesomeIcon icon={labelIcons[category]} size="lg" className="text-black mr-2"/>
+                      <p className={points >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        <FontAwesomeIcon 
+                          icon={labelIcons[category]} 
+                          size="lg" 
+                          className={`${theme.textViolet} mr-2`}
+                        />
                         {category}: {points} points
                       </p>
                     </li>

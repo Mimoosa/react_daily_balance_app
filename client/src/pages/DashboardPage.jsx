@@ -1,8 +1,8 @@
 import BarCharts from '../components/BarCharts';
 import {useState, useEffect} from 'react';
-import { themes } from '../contexts/themeConfig';
+import { useTheme } from '../contexts/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faFire} from '../contexts/icons'
+import {faFire} from '@fortawesome/free-solid-svg-icons';
 import { dashboardService, userService } from '../services/api';
 
 /**
@@ -18,7 +18,7 @@ import { dashboardService, userService } from '../services/api';
  * the total points for both display and recommendation generation.
  */
 const DashboardPage = () => {
-  const theme = themes.light; 
+  const { theme } = useTheme();
   const [recommendation, setRecommendation] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -77,41 +77,48 @@ const DashboardPage = () => {
   const totalMax = Math.max(...Object.values(totalScores), 1); // Ensure non-zero for division
   
   return(
-      <div className="h-full">
-      <h1 className="text-4xl font-bold mb-6 text-center mt-6">Your Dashboard</h1>
+      <div className={`min-h-screen flex flex-col ${theme.backgroundWhite}`}>
+        <h1 className={`text-4xl font-bold text-center py-6 ${theme.textViolet}`}>Your Dashboard</h1>
       
-      <div className="flex flex-col items-center h-full lg:items-start lg:flex-row lg:justify-center">
-        <div className="w-[90%] h-full lg:w-2/5 mt-4 lg:mt-0">
-            <h2 className="text-center text-xl font-semibold">Total Wellbeing Scores</h2>
-            <div className={`${theme.backgroundCard} pt-6 pb-2 px-4 rounded-md mt-4 flex flex-col justify-center shadow-lg`}>
-                <BarCharts data={totalScores} maxValue={totalMax} maxPossibleValue={MAX_POINTS_PER_CATEGORY} />
-            </div>
-        </div>
-        
-        <div className="w-[90%] h-full lg:w-2/5 mt-4 lg:mt-0 lg:ml-4">
-            <h2 className="text-center text-xl font-semibold">Wellbeing Recommendations</h2>
-            <div className={`${theme.backgroundCard} h-1/2 p-6 rounded-md mt-4 shadow-lg`} style={{ height: '225px', overflowY: 'auto' }}>
-            {loading ? ( 
-              <p className="text-black">Fetching recommendation... Please wait.</p>
-            ) : error ? ( 
-              <p className="text-red-500">{error}</p>
-            ) : (
-              <>
-                <p className="text-black">The way to improve your <strong>{recommendation.category}</strong> field is as follows:</p>
-                <p className="text-black">{recommendation.advice}</p>
-                <p className="text-black">Let's strive for a balanced and fulfilling life together with Daily Balance!</p>  
-              </>
-            )}
-            </div>
-        </div>
-      </div>
-      
-      <div className="w-[90%] mx-auto mt-4 lg:w-4/5">
-          <h2 className="text-center text-xl font-semibold">Daily Streak</h2>
-          <div className={`${theme.backgroundCard} h-1/2 text-xl p-4 font-bold rounded-md mt-4 shadow-lg`}>
-              <p className="text-black text-center">{dailyStreak} Days<FontAwesomeIcon icon={faFire} size="xl" className="ml-2 text-red-500" /></p>
+        <div className="flex flex-col items-center h-full lg:items-start lg:flex-row lg:justify-center">
+          <div className="w-[90%] h-full lg:w-2/5 mt-4 lg:mt-0">
+              <h2 className={`text-center text-xl font-semibold ${theme.textViolet}`}>Total Wellbeing Scores</h2>
+              <div className={`${theme.backgroundCard} pt-6 pb-2 px-4 rounded-md mt-4 flex flex-col justify-center shadow-lg ${theme.cardShadow}`}>
+                  <BarCharts data={totalScores} maxValue={totalMax} maxPossibleValue={MAX_POINTS_PER_CATEGORY} />
+              </div>
           </div>
-      </div>
+          
+          <div className="w-[90%] h-full lg:w-2/5 mt-4 lg:mt-0 lg:ml-4">
+              <h2 className={`text-center text-xl font-semibold ${theme.textViolet}`}>Wellbeing Recommendations</h2>
+              <div className={`${theme.backgroundCard} h-1/2 p-6 rounded-md mt-4 shadow-lg ${theme.cardShadow}`} style={{ height: '225px', overflowY: 'auto' }}>
+              {loading ? ( 
+                <p className={theme.textSecondary}>Fetching recommendation... Please wait.</p>
+              ) : error ? ( 
+                <p className={theme.alert}>{error}</p>
+              ) : (
+                <>
+                  <p className={theme.textSecondary}>The way to improve your <strong className={theme.textViolet}>{recommendation.category}</strong> field is as follows:</p>
+                  <div className="mt-4 flex items-start">
+                    <div className={`${theme.backgroundViolet} p-2 rounded-full mr-3 flex-shrink-0`}>
+                      <FontAwesomeIcon icon={faFire} className={`${theme.textWhite}`} />
+                    </div>
+                    <p className={theme.textSecondary}>{recommendation.advice}</p>
+                  </div>
+                </>
+              )}
+              </div>
+              
+              <div className="mt-4 flex items-center">
+                <div className={`${theme.backgroundViolet} p-2 rounded-full mr-3`}>
+                  <FontAwesomeIcon icon={faFire} className={`${theme.textWhite}`} />
+                </div>
+                <div>
+                  <p className={`text-sm ${theme.textSecondary}`}>Daily Streak</p>
+                  <p className={`text-xl font-bold ${theme.textViolet}`}>{dailyStreak} days</p>
+                </div>
+              </div>
+          </div>
+        </div>
       </div>
   );
 };

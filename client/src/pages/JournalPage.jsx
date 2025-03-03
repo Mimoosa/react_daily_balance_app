@@ -137,9 +137,10 @@ const JournalPage = () => {
      */
 
     return (
-        <div className={`min-h-screen w-full ${theme.backgroundWhite}`}>
+        <div className={`min-h-screen flex flex-col ${theme.backgroundWhite}`}>
+            
             {/* Main content area */}
-            <div className="flex flex-col-reverse lg:flex-row h-full">
+            <div className="flex flex-col-reverse lg:flex-row flex-1">
                 {/* Journal entries section */}
                 <div className={`lg:w-64 border-t lg:border-t-0 lg:border-r ${theme.divider || theme.border}`}>
                     {/* Desktop view - side panel */}
@@ -169,10 +170,6 @@ const JournalPage = () => {
 
                 {/* Journal input and analysis section */}
                 <div className="flex-1 p-4 lg:p-6">
-                    <h2 className={`text-3xl font-bold text-center mt-2 mb-4 ${theme.textViolet}`}>
-                        {isEditing ? 'Edit Journal Entry' : 'New Journal Entry'}
-                    </h2>
-
                     <JournalTips />
                     
                     {error && (
@@ -248,7 +245,7 @@ const JournalPage = () => {
                                 <button
                                     type="submit"
                                     disabled={loading || content.length < 10}
-                                    className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg disabled:bg-gray-400 dark:disabled:bg-gray-700 transition-colors`}
+                                    className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg cursor-pointer transition-colors`}
                                 >
                                     {loading ? 'Analyzing...' : 'Analyze My Day'}
                                 </button>
@@ -287,7 +284,7 @@ const JournalPage = () => {
                             </div>
                         </div>
                     )}
-                </  div>
+                </div>
             </div>
         </div>
     );
