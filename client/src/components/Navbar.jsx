@@ -59,13 +59,12 @@ const Navbar = () => {
           <Link to="/journal" className={`${theme.textWhite} hover:${theme.textViolet}`}>
             <FontAwesomeIcon icon={faBook} className="mr-1" /> Journal
           </Link>
+          <Link to="/activity" className={`${theme.textWhite} hover:${theme.textViolet}`}>
+            <FontAwesomeIcon icon={faCalendarDay} className="mr-1" /> Daily Report
+          </Link>
           <Link to="/dashboard" className={`${theme.textWhite} hover:${theme.textViolet}`}>
             <FontAwesomeIcon icon={faChartSimple} className="mr-1" /> Dashboard
           </Link>
-          <Link to="/activity" className={`${theme.textWhite} hover:${theme.textViolet}`}>
-            <FontAwesomeIcon icon={faCalendarDay} className="mr-1" /> Activities
-          </Link>
-
           <Link to="/profile" className={`${theme.textWhite} hover:${theme.textViolet}`}>
             <FontAwesomeIcon icon={faUser} className="mr-1" /> Profile
           </Link>

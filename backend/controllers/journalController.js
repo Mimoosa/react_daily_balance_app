@@ -5,6 +5,7 @@
 
 const Journal = require('../models/Journal');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const User = require('../models/User'); // Add User model import
 
 /**
  * Initialize Gemini AI model for journal analysis
@@ -178,7 +179,10 @@ const updateJournal = async (req, res) => {
             return res.status(404).json({ error: 'Journal not found' });
         }
         
-        // Update content and reset processing flag for today's entry
+        // Store original points if they exist
+        const originalPoints = journal.points ? { ...journal.points } : null;
+        
+        // Update content
         journal.content = content;
         
         // Check if this is today's entry
@@ -187,7 +191,26 @@ const updateJournal = async (req, res) => {
         const journalDate = new Date(journal.date);
         journalDate.setHours(0, 0, 0, 0);
         
-        if (journalDate.getTime() === today.getTime()) {
+        if (journalDate.getTime() === today.getTime() && originalPoints) {
+            // If this is today's entry and it had points, we need to reverse the points from user's total
+            const user = await User.findById(req.user.id);
+            
+            if (user && user.totalPoints) {
+                // Create a reversed version of the points to subtract them
+                const pointsToReverse = {};
+                
+                for (const [category, value] of Object.entries(originalPoints)) {
+                    if (user.totalPoints[category] !== undefined) {
+                        // Subtract the old points
+                        user.totalPoints[category] -= value;
+                        pointsToReverse[category] = -value; // Store the reversed points for logging
+                    }
+                }
+                
+                await user.save();
+                console.log(`Reversed previous points for user ${user._id}:`, pointsToReverse);
+            }
+            
             // Reset the processing flag for today's entry
             journal.activitiesProcessed = false;
             // Clear previous calculations

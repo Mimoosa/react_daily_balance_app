@@ -109,6 +109,20 @@ const JournalPage = () => {
         
         setLoading(true);
         try {
+            // Add confirmation when updating today's entry with points
+            const isToday = new Date(selectedEntry.date).toDateString() === new Date().toDateString();
+            
+            if (isToday && selectedEntry.activitiesProcessed) {
+                const confirmUpdate = window.confirm(
+                    "This journal entry already has activity points calculated. Updating will reset these points and require recalculation. Continue?"
+                );
+                
+                if (!confirmUpdate) {
+                    setLoading(false);
+                    return;
+                }
+            }
+            
             const data = await journalService.updateEntry(selectedEntry._id, content);
             setAnalysis(data.analysis);
             await fetchJournals();
@@ -126,7 +140,7 @@ const JournalPage = () => {
      * @function
      */
     const goToActivityReport = () => {
-        navigate('/activity-report');
+        navigate('/activity');
     };
 
     /**

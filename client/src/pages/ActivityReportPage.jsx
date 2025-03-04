@@ -100,20 +100,8 @@ const DailyActivityReport = () => {
       try {
         setLoading(true);
         
-        // Step 1: Reverse the previous points from user profile
-        if (Object.keys(totalPoints).length > 0) {
-          const reversedPoints = {};
-          // Create negative version of current points to subtract them
-          for (const [category, points] of Object.entries(totalPoints)) {
-            reversedPoints[category] = -points; // Negate the points
-          }
-          
-          // Subtract old points from user profile
-          await userService.updatePoints(reversedPoints);
-          console.log("Reversed previous points:", reversedPoints);
-        }
-        
-        // Step 2: Reset the processing flag
+        // Reset the processing flag on the server
+        // The server now handles reversing the points from the user's total
         await ActivityReportService.resetProcessingFlag();
         
         // Step 3: Clear current state
@@ -122,6 +110,7 @@ const DailyActivityReport = () => {
         setTotalPoints({});
         
         // Step 4: Generate new activities and points
+        // The server will add these new points to the user's total
         generateActivities();
       } catch (error) {
         console.error("Error during recalculation:", error);

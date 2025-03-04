@@ -2,7 +2,7 @@ import BarCharts from '../components/BarCharts';
 import {useState, useEffect} from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faFire} from '@fortawesome/free-solid-svg-icons';
+import {faFire, faChartLine, faLightbulb} from '@fortawesome/free-solid-svg-icons';
 import { dashboardService, userService } from '../services/api';
 
 /**
@@ -18,7 +18,7 @@ import { dashboardService, userService } from '../services/api';
  * the total points for both display and recommendation generation.
  */
 const DashboardPage = () => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const [recommendation, setRecommendation] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -78,43 +78,68 @@ const DashboardPage = () => {
   
   return(
       <div className={`min-h-screen flex flex-col ${theme.backgroundWhite}`}>
-        <h1 className={`text-4xl font-bold text-center py-6 ${theme.textViolet}`}>Your Dashboard</h1>
+        <div className={`py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6`}>
+          <h1 className={`text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
+            <FontAwesomeIcon icon={faChartLine} className={`${theme.textViolet}`} />
+            Your Dashboard
+          </h1>
+        </div>
       
-        <div className="flex flex-col items-center h-full lg:items-start lg:flex-row lg:justify-center">
-          <div className="w-[90%] h-full lg:w-2/5 mt-4 lg:mt-0">
-              <h2 className={`text-center text-xl font-semibold ${theme.textViolet}`}>Total Wellbeing Scores</h2>
-              <div className={`${theme.backgroundCard} pt-6 pb-2 px-4 rounded-md mt-4 flex flex-col justify-center shadow-lg ${theme.cardShadow}`}>
+        <div className="flex flex-col items-center lg:items-stretch lg:flex-row lg:justify-center gap-6 px-4">
+          <div className="w-full lg:w-2/5 max-w-xl">
+              <h2 className={`text-center text-xl font-semibold ${theme.textViolet} mb-4 flex items-center justify-center gap-2`}>
+                <FontAwesomeIcon icon={faChartLine} className={`${theme.textViolet}`} />
+                Total Wellbeing Scores
+              </h2>
+              <div className={`${theme.backgroundCard} pt-6 pb-4 px-6 rounded-xl shadow-lg ${theme.cardShadow} transition-all duration-300 hover:shadow-xl`}>
                   <BarCharts data={totalScores} maxValue={totalMax} maxPossibleValue={MAX_POINTS_PER_CATEGORY} />
               </div>
           </div>
           
-          <div className="w-[90%] h-full lg:w-2/5 mt-4 lg:mt-0 lg:ml-4">
-              <h2 className={`text-center text-xl font-semibold ${theme.textViolet}`}>Wellbeing Recommendations</h2>
-              <div className={`${theme.backgroundCard} h-1/2 p-6 rounded-md mt-4 shadow-lg ${theme.cardShadow}`} style={{ height: '225px', overflowY: 'auto' }}>
+          <div className="w-full lg:w-2/5 max-w-xl">
+              <h2 className={`text-center text-xl font-semibold ${theme.textViolet} mb-4 flex items-center justify-center gap-2`}>
+                <FontAwesomeIcon icon={faLightbulb} className={`${theme.textViolet}`} />
+                Wellbeing Recommendations
+              </h2>
+              <div 
+                className={`${theme.backgroundCard} p-6 rounded-xl shadow-lg ${theme.cardShadow} transition-all duration-300 hover:shadow-xl`} 
+                style={{ minHeight: '225px', maxHeight: '275px', overflowY: 'auto' }}
+              >
               {loading ? ( 
-                <p className={theme.textSecondary}>Fetching recommendation... Please wait.</p>
+                <div className="flex justify-center items-center h-full">
+                  <div className="animate-pulse flex flex-col items-center">
+                    <div className={`h-10 w-10 rounded-full ${isDark ? 'bg-gray-700' : 'bg-violet-200'} mb-4`}></div>
+                    <div className={`h-4 w-3/4 rounded ${isDark ? 'bg-gray-700' : 'bg-violet-200'} mb-2`}></div>
+                    <div className={`h-4 w-1/2 rounded ${isDark ? 'bg-gray-700' : 'bg-violet-200'}`}></div>
+                  </div>
+                </div>
               ) : error ? ( 
-                <p className={theme.alert}>{error}</p>
+                <p className={`${theme.alert} flex items-center gap-2`}>
+                  <FontAwesomeIcon icon="exclamation-circle" />
+                  {error}
+                </p>
               ) : (
                 <>
-                  <p className={theme.textSecondary}>The way to improve your <strong className={theme.textViolet}>{recommendation.category}</strong> field is as follows:</p>
+                  <p className={`${theme.textSecondary} font-medium`}>
+                    The way to improve your <span className={`${theme.textViolet} font-bold`}>{recommendation.category}</span> field is as follows:
+                  </p>
                   <div className="mt-4 flex items-start">
-                    <div className={`${theme.backgroundViolet} p-2 rounded-full mr-3 flex-shrink-0`}>
-                      <FontAwesomeIcon icon={faFire} className={`${theme.textWhite}`} />
+                    <div className={`${theme.backgroundViolet} p-3 rounded-full mr-4 flex-shrink-0`}>
+                      <FontAwesomeIcon icon={faLightbulb} className={`${theme.textWhite}`} />
                     </div>
-                    <p className={theme.textSecondary}>{recommendation.advice}</p>
+                    <p className={`${theme.textSecondary} leading-relaxed`}>{recommendation.advice}</p>
                   </div>
                 </>
               )}
               </div>
               
-              <div className="mt-4 flex items-center">
-                <div className={`${theme.backgroundViolet} p-2 rounded-full mr-3`}>
-                  <FontAwesomeIcon icon={faFire} className={`${theme.textWhite}`} />
+              <div className="mt-6 flex items-center bg-gradient-to-r from-amber-300 to-orange-500 p-4 rounded-xl shadow-md">
+                <div className="bg-white/90 p-3 rounded-full mr-4">
+                  <FontAwesomeIcon icon={faFire} className="text-orange-500 text-xl" beat />
                 </div>
                 <div>
-                  <p className={`text-sm ${theme.textSecondary}`}>Daily Streak</p>
-                  <p className={`text-xl font-bold ${theme.textViolet}`}>{dailyStreak} days</p>
+                  <p className="text-sm font-medium text-white">Daily Streak</p>
+                  <p className="text-2xl font-bold text-white">{dailyStreak} days</p>
                 </div>
               </div>
           </div>

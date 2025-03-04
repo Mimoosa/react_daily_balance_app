@@ -1,5 +1,6 @@
 const Journal = require('../models/Journal');
 const ActivityPoints = require('../models/ActivityPoints');
+const User = require('../models/User'); // Add User model import
 
 const model = require("../models/geminiModel");
 
@@ -158,23 +159,61 @@ const saveActivityPoints = async (req, res) => {
             return res.status(404).json({ error: "Today's journal entry not found" });
         }
 
-        // Only update if not already processed or if forced
-        if (!journal.activitiesProcessed || req.query.force === 'true') {
-            journal.points = points;
+        // Get the current user to properly handle point updates
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Check if this journal already had points processed
+        const previousPoints = journal.activitiesProcessed ? { ...journal.points } : null;
+
+        // Update the points in the journal
+        journal.points = points;
+        
+        if (activities && Array.isArray(activities)) {
+            journal.activities = activities;
+            console.log(`Saved ${activities.length} activities to journal`);
+        }
+        
+        // Mark as processed
+        journal.activitiesProcessed = true;
+        
+        // If this entry had previous points, we need to adjust the user's total points
+        if (previousPoints) {
+            console.log('Previous points found, adjusting user total points');
             
-            if (activities && Array.isArray(activities)) {
-                journal.activities = activities;
-                console.log(`Saved ${activities.length} activities to journal`);
+            // Calculate the net difference to apply
+            const pointsDiff = {};
+            
+            for (const category in points) {
+                const oldValue = previousPoints[category] || 0;
+                const newValue = points[category] || 0;
+                pointsDiff[category] = newValue - oldValue;
             }
             
-            // Mark as processed
-            journal.activitiesProcessed = true;
+            console.log('Points difference to apply:', pointsDiff);
             
-            await journal.save();
-            console.log('Journal activities processed and saved');
+            // Apply the net difference to user's total points
+            for (const [category, diff] of Object.entries(pointsDiff)) {
+                if (!user.totalPoints) user.totalPoints = {};
+                if (!user.totalPoints[category]) user.totalPoints[category] = 0;
+                user.totalPoints[category] += diff;
+            }
         } else {
-            console.log('Activities already processed, not updating');
+            // No previous points, just add the new points directly
+            console.log('No previous points, adding new points directly');
+            for (const [category, value] of Object.entries(points)) {
+                if (!user.totalPoints) user.totalPoints = {};
+                if (!user.totalPoints[category]) user.totalPoints[category] = 0;
+                user.totalPoints[category] += value;
+            }
         }
+        
+        // Save both the journal and user
+        await Promise.all([journal.save(), user.save()]);
+        
+        console.log('Journal and user points updated successfully');
 
         res.json({
             points: journal.points,
@@ -225,18 +264,26 @@ const resetProcessingFlag = async (req, res) => {
             return res.status(404).json({ error: "Today's journal entry not found" });
         }
 
-        // Store the previous points for the response
+        // Store the previous points for the response and for updating user totals
         const previousPoints = { ...journal.points };
+        
+        // Get the current user to adjust their total points
+        const user = await User.findById(userId);
+        if (user && previousPoints) {
+            // Subtract the previous points from user's total points
+            for (const [category, value] of Object.entries(previousPoints)) {
+                if (user.totalPoints && user.totalPoints[category] !== undefined) {
+                    user.totalPoints[category] -= value;
+                    console.log(`Subtracted ${value} points from user's ${category} category`);
+                }
+            }
+            await user.save();
+        }
         
         // Reset the processing flag and clear previous data
         journal.activitiesProcessed = false;
         journal.activities = [];
-        journal.points = {
-            Physical: 0,
-            Psychological: 0,
-            Social: 0,
-            Cognitive: 0
-        };
+        journal.points = {};
         
         await journal.save();
         
