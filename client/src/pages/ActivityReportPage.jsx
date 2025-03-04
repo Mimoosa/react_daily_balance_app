@@ -90,7 +90,6 @@ const DailyActivityReport = () => {
        * @returns {Object} Total points for each category.
        */
       const calculateTotalPoints = (activities) => {
-        console.log(activities)
         const initialPoints = {
           Physical: 0,
           Psychological: 0,
@@ -140,7 +139,7 @@ const DailyActivityReport = () => {
         <div className="mt-6 flex flex-col lg:flex-row gap-6">
           <div>
             <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Daily Summary</h3>
-            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80`} style={{ height: '300px', overflowY: 'auto' }}>
+            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80 lg:w-100`} style={{ height: '300px', overflowY: 'auto' }}>
               {loading ? (
                 <p className={theme.textSecondary}>Fetching data... Please wait.</p>
               ) : error ? (
@@ -169,7 +168,7 @@ const DailyActivityReport = () => {
 
           <div>
             <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Total Points</h3>
-            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80`} style={{ height: '300px'}}>
+            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80 lg:w-100`} style={{ height: '300px'}}>
               {loading ? (
                 <p className={theme.textSecondary}>Fetching data... Please wait.</p>
               ) : error ? (
