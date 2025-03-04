@@ -1,11 +1,9 @@
 const Journal = require('../models/Journal');
 const ActivityPoints = require('../models/ActivityPoints');
-const User = require('../models/User');
 
 const model = require("../models/geminiModel");
 
 const getTodaysJournal = async (req, res) => {
-
     try {
         const userId = req.user.id;
         const today = new Date();
@@ -29,7 +27,8 @@ const getTodaysJournal = async (req, res) => {
         res.json({
             content: todaysJournal.content,
             points: todaysJournal.points || null,
-            activities: todaysJournal.activities || null
+            activities: todaysJournal.activities || null,
+            activitiesProcessed: todaysJournal.activitiesProcessed || false
         });
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -39,60 +38,44 @@ const getTodaysJournal = async (req, res) => {
 const generatePoints = async (diaryEntry) => {
     console.log(diaryEntry)
     const prompt = `
-  Gemini, please analyze the following diary entry and categorize each activity into one of the following categories: Physical, Cognitive, Social, and Psychological. Assign points to each activity based on the criteria provided below. Here is the diary entry:
+    Gemini, please analyze the following diary entry and categorize each activity into one of the following categories: Physical, Cognitive, Social, and Psychological. Assign points to each activity based on the criteria provided below. Here is the diary entry:
   
     ${diaryEntry}
   
       Criteria for assigning points:
   - Sleep:
-    - Less than 3 hours: -30 points (Physical and Cognitive)
-    - 3 to 6 hours: -15 points (Physical and Cognitive)
+    - Less than 3 hours: -50 points (Physical and Cognitive)
+    - 3 to 6 hours: -30 points (Physical and Cognitive)
     - 7 hours: 10 points (Physical and Cognitive)
     - More than 7 hours: 20 points (Physical and Cognitive)
     - If time is not specified and the content is negative (e.g., not enough sleep): -20 points (Physical and Cognitive)
     - If time is not specified and the content is positive (e.g., well-rested): 20 points (Physical and Cognitive)
   - Physical activities:
-     - Vigorous activities (e.g., gym workouts, sports):
-      - More than 3 hours: 30 points
-      - More than 5 hours: 40 points
-      - More than 8 hours: 50 points
-      - If time is not specified: 20 points
-      - If the entry mentions spending most of the day on a vigorous activity: +50 points (Physical)
-    - Moderate activities (e.g., walking, light exercises):
-      - More than 3 hours: 15 points
-      - More than 5 hours: 20 points
-      - More than 8 hours: 30 points
-      - If time is not specified: 10 points
-      - If the entry mentions spending most of the day on a moderate activity: +30 points (Physical)
+    - Vigorous activities (e.g., gym workouts, sports): 20 points per 30 minutes
+    - Moderate activities (e.g., walking, light exercises): 10 points per 30 minutes
+    - If time is not specified:
+      - Vigorous activities: 20 points
+      - Moderate activities: 10 points
+    - If the entry mentions spending most of the day on a vigorous activity: +100 points (Physical)
+    - If the entry mentions spending most of the day on a moderate activity: +50 points (Physical)
   - Social activities:
-    - Any social interaction (e.g., meeting friends, attending events): 20 points
+    - Any social interaction (e.g., meeting friends, attending events): 30 points
   - Cognitive activities:
-    - Studying, working on assignments, reading: 
-      - More than 3 hours: 30 points
-      - More than 5 hours: 40 points
-      - More than 8 hours: 50 points
-      - If time is not specified: 20 points
-      - If the entry mentions spending most of the day on cognitive activities: +50 points (Cognitive)
+    - Studying, working on assignments, reading: 10 points per 30 minutes
+    - If time is not specified: 10 points
+    - If the entry mentions spending most of the day on cognitive activities: +60 points (Cognitive)
   - Psychological activities:
-    - Engaging in hobbies (e.g., traveling, visiting museums, playing games): 20 points regardless of time
-    - If the entry mentions spending most of the day on psychological activities: +50 points (Psychological)
+    - Engaging in hobbies (e.g., traveling, visiting museums, playing games): 30 points regardless of time
+    - If the entry mentions spending most of the day on psychological activities: +60 points (Psychological)
   - Negative activities:
     - Overindulgence in alcohol or unhealthy behaviors: -30 points (Physical)
-    - If the entry mentions spending most of the day sitting: -30 points (Physical)
-  - Eating habits:
-    - Healthy eating habits: 30 points (Physical)
-    - Consumption of harmful substances (e.g., alcohol, coffee, energy drinks, tobacco): -30 points (Physical)
-  - Feelings & Mood:
-    - Good mood: +20 points (Psychological)
-    - Bad mood: -20 points (Psychological)
+    - If the entry mentions spending most of the day sitting: -50 points (Physical)
 
-    Ignore sentences related to weather or unrelated to the four categories.
   
     Please provide the output in JSON format with the following structure:
     [
       { "text": "Description of activity", "category": "Category", "points": Points }
     ]
-    Ensure that the total points for each category do not exceed 100 points.
     `;
   
     try {
@@ -109,7 +92,7 @@ const generatePoints = async (diaryEntry) => {
         console.error("LLM Error:", error);
         throw new Error(`Failed to generate fitness plan: ${error.message}`);
       }
-  };
+};
 
 const generateResponse = async (req, res) => {
   try {
@@ -133,6 +116,16 @@ const generateResponse = async (req, res) => {
     let activities;
     try {
       activities = JSON.parse(jsonMatch[1]);
+      
+      // Calculate category totals for console logging
+      const categoryTotals = activities.reduce((acc, activity) => {
+        const { category, points } = activity;
+        if (!acc[category]) acc[category] = 0;
+        acc[category] += points;
+        return acc;
+      }, {});
+      
+      console.log('Activity Points by Category:', categoryTotals);
     } catch (parseError) {
       console.error('Error parsing JSON:', parseError);
       return res.status(500).json({ error: "Error parsing JSON response." });
@@ -144,25 +137,14 @@ const generateResponse = async (req, res) => {
   }
 };
 
-/**
- * Saves activity points for today's journal entry and updates user's total points
- * @async
- * @function
- * @param {Object} req - Express request object
- * @param {Object} req.body - Request body
- * @param {Object} req.body.points - Points by category
- * @param {Object} req.user - Authenticated user object
- * @param {string} req.user.id - User ID
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- * @throws {Error} If saving fails or journal entry not found
- */
 const saveActivityPoints = async (req, res) => {
     try {
-        const { points } = req.body;
+        const { points, activities } = req.body;
         const userId = req.user.id;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
+        console.log('Saving points and activities:', points, activities);
 
         const journal = await Journal.findOne({
             user: userId,
@@ -176,58 +158,31 @@ const saveActivityPoints = async (req, res) => {
             return res.status(404).json({ error: "Today's journal entry not found" });
         }
 
-        /**
-         * FEATURE: Handle updating existing points
-         * 
-         * This section handles the case where a journal entry is updated and
-         * new points need to be calculated. We need to:
-         * 1. Check if we're updating existing points
-         * 2. If updating, subtract the old points from the user's total
-         * 3. Add the new points to the user's total
-         * 
-         * This ensures that the user's total points remain accurate when
-         * journal entries are updated and points are recalculated.
-         */
-        
-        // Check if this is an update to existing points
-        const isUpdating = journal.points && Object.keys(journal.points).length > 0;
-        
-        // If updating existing points, subtract old points from user's total
-        if (isUpdating) {
-            const user = await User.findById(userId);
-            if (user) {
-                // Subtract the old points from the user's total points
-                Object.keys(journal.points).forEach(category => {
-                    if (user.points[category] !== undefined) {
-                        user.points[category] -= journal.points[category];
-                        // Ensure we don't go below 0
-                        if (user.points[category] < 0) user.points[category] = 0;
-                    }
-                });
-                await user.save();
+        // Only update if not already processed or if forced
+        if (!journal.activitiesProcessed || req.query.force === 'true') {
+            journal.points = points;
+            
+            if (activities && Array.isArray(activities)) {
+                journal.activities = activities;
+                console.log(`Saved ${activities.length} activities to journal`);
             }
-        }
-        
-        // Update journal with new points
-        journal.points = points;
-        await journal.save();
-        
-        // Update user's total points with new points
-        const user = await User.findById(userId);
-        if (user) {
-            // Add the new points to the user's existing points
-            Object.keys(points).forEach(category => {
-                if (user.points[category] !== undefined) {
-                    user.points[category] += points[category];
-                } else {
-                    user.points[category] = points[category];
-                }
-            });
-            await user.save();
+            
+            // Mark as processed
+            journal.activitiesProcessed = true;
+            
+            await journal.save();
+            console.log('Journal activities processed and saved');
+        } else {
+            console.log('Activities already processed, not updating');
         }
 
-        res.json(journal);
+        res.json({
+            points: journal.points,
+            activities: journal.activities,
+            activitiesProcessed: journal.activitiesProcessed
+        });
     } catch (error) {
+        console.error('Error saving activity points:', error);
         res.status(400).json({ error: error.message });
     }
 };
@@ -252,9 +207,53 @@ const getWeeklyPoints = async (req, res) => {
     }
 };
 
+const resetProcessingFlag = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const journal = await Journal.findOne({
+            user: userId,
+            date: {
+                $gte: today,
+                $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
+            }
+        });
+
+        if (!journal) {
+            return res.status(404).json({ error: "Today's journal entry not found" });
+        }
+
+        // Store the previous points for the response
+        const previousPoints = { ...journal.points };
+        
+        // Reset the processing flag and clear previous data
+        journal.activitiesProcessed = false;
+        journal.activities = [];
+        journal.points = {
+            Physical: 0,
+            Psychological: 0,
+            Social: 0,
+            Cognitive: 0
+        };
+        
+        await journal.save();
+        
+        res.json({ 
+            message: "Processing flag reset successfully",
+            previousPoints
+        });
+    } catch (error) {
+        console.error('Error resetting processing flag:', error);
+        res.status(400).json({ error: error.message });
+    }
+};
+
 module.exports = {
     getTodaysJournal,
     generateResponse,
     saveActivityPoints,
-    getWeeklyPoints
+    getWeeklyPoints,
+    resetProcessingFlag
 };

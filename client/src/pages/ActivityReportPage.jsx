@@ -1,195 +1,214 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useTheme } from '../contexts/ThemeContext';
+import React from "react";
+import { themes } from '../contexts/themeConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDumbbell, faBrain, faUsers, faHeart } from '@fortawesome/free-solid-svg-icons';
-import { ActicityReportService } from '../services/api';
+import { faDumbbell, faBrain, faUsers, faHeart } from '../contexts/icons';
+import { ActivityReportService, userService } from '../services/api';
+import { useState, useEffect } from 'react';
 
-
-/**
- * Transforms activities into a structured format for rendering.
- * 
- * @param {Array} activities - Array of activity objects.
- * @returns {Array} Transformed array of activities with categorized points.
- */
-const transformActivities = (activities) => {
-  const transformed = {};
-
-  activities.forEach((activity) => {
-    if (!transformed[activity.text]) {
-      transformed[activity.text] = { text: activity.text, categories: [] };
-    }
-    transformed[activity.text].categories.push({ category: activity.category, points: activity.points });
-  });
-
-  return Object.values(transformed);
-};
-
-/**
- * DailyActivityReport Component
- * Displays the daily activity report including a summary and total points.
- * 
- * @component
- */
 const DailyActivityReport = () => {
-  const { theme } = useTheme();
-  const [journal, setJournal] = useState(JSON.parse(localStorage.getItem("journal")) || false);
-  const [activities, setActivities] = useState(JSON.parse(localStorage.getItem("activities") || "[]"));
+  const theme = themes.light;
+  const [journal, setJournal] = useState("");
+  const [activities, setActivities] = useState([]);
   const [error, setError] = useState('');
   const [totalPoints, setTotalPoints] = useState({});
   const [loading, setLoading] = useState(true);
-
+  const [activitiesProcessed, setActivitiesProcessed] = useState(false);
+ 
   const labelIcons = {
     Physical: faDumbbell,
     Psychological: faHeart,
     Social: faUsers,
     Cognitive: faBrain
   };
-
-  /**
-   * Fetches the journal entry for today.
-   * Updates the local storage and state with the fetched data.
-   */
+  
   const fetchJournal = async () => {
     try {
-      const data = await ActicityReportService.getTodaysEntry();
-      if (JSON.stringify(data.content) !== JSON.stringify(journal)) {
-        setJournal(data.content);
-        fetchActivities(data.content);
+      const data = await ActivityReportService.getTodaysEntry();
+      setJournal(data.content);
+      
+      // Check if activities are already processed
+      if (data.activitiesProcessed && data.points && data.activities?.length > 0) {
+        console.log("Activities already processed, using stored data");
+        setTotalPoints(data.points);
+        setActivities(data.activities);
+        setActivitiesProcessed(true);
+      } else {
+        console.log("Activities not processed yet, will analyze");
+        setActivitiesProcessed(false);
       }
-      localStorage.setItem("journal", JSON.stringify(data.content));
-    } catch (error) {
-      setError('Failed to fetch journal entries');
       setLoading(false);
-      console.log(error);
+    } catch (error) {
+      console.error("Error fetching journal:", error);
+      setError('Failed to fetch journal entries. Please create a journal entry first.');
+      setLoading(false);
     }
   };
 
-  const fetchActivities = async (journal) => {
+  const generateActivities = async () => {
+    if (!journal) {
+      setError('No journal content found to analyze');
+      return;
+    }
+
     try {
-      console.log(journal)
-      const data = await ActicityReportService.getActivities(journal);
-      localStorage.setItem("activities", JSON.stringify(data)); 
+      setLoading(true);
+      console.log("Generating activities for journal");
+      const data = await ActivityReportService.getActivities(journal);
+      console.log("Generated activities:", data);
       setActivities(data);
+      
+      // Calculate total points
+      const calculatedPoints = data.reduce((acc, activity) => {
+        if (!acc[activity.category]) acc[activity.category] = 0;
+        acc[activity.category] += activity.points;
+        return acc;
+      }, {});
+      
+      console.log("Calculated points:", calculatedPoints);
+      setTotalPoints(calculatedPoints);
+      
+      // Save points to database
+      await ActivityReportService.savePoints(calculatedPoints, data);
+      
+      // Update user's total points
+      await userService.updatePoints(calculatedPoints);
+      
+      setActivitiesProcessed(true);
       setLoading(false);
     } catch (error) {
-      setError('Failed to fetch activities');
-      console.log(error);
+      console.error("Error generating activities:", error);
+      setError('Failed to analyze activities: ' + error.message);
+      setLoading(false);
     }
   };
 
+  // Initial load
   useEffect(() => {
     fetchJournal();
   }, []);
 
+  // Generate activities when journal is loaded and not already processed
   useEffect(() => {
-    if (activities.length > 0) {
-        /**
-       * Calculates total points for each category based on activities.
-       * 
-       * @param {Array} activities - Array of activity objects.
-       * @returns {Object} Total points for each category.
-       */
-      const calculateTotalPoints = (activities) => {
-        const initialPoints = {
-          Physical: 0,
-          Psychological: 0,
-          Social: 0,
-          Cognitive: 0,
-        };
-        return activities.reduce((acc, activity) => {
-          acc[activity.category] = (acc[activity.category] || 0) + activity.points;
-          return acc;
-        }, initialPoints);
-      };
-      /**
-       * Normalizes points to ensure no category exceeds 100 points.
-       * 
-       * @param {Object} points - Object containing points for each category.
-       * @returns {Object} Normalized points for each category.
-       */
-      const normalizePoints = (points) => {
-        Object.keys(points).forEach((key) => {
-          if (points[key] > 100) {
-            points[key] = 100;
-          }
-        });
-        return points;
-      };
-
-      const points = calculateTotalPoints(activities);
-      const normalizedPoints = normalizePoints(points);
-      setTotalPoints(normalizedPoints);
-
-      // Save points to the database
-      ActicityReportService.savePoints(points).catch(error => {
-        console.error('Failed to save points:', error);
-      });
-
-      setLoading(false);
+    if (journal && !activitiesProcessed && !loading) {
+      generateActivities();
     }
-  }, [activities]);
+  }, [journal, activitiesProcessed, loading]);
 
-  const transformedActivities = useMemo(() => transformActivities(activities), [activities]);
+  // Generate button handler for manual regeneration
+  const handleRegenerateClick = async () => {
+    if (window.confirm('This will recalculate your points for today. Continue?')) {
+      try {
+        setLoading(true);
+        
+        // Step 1: Reverse the previous points from user profile
+        if (Object.keys(totalPoints).length > 0) {
+          const reversedPoints = {};
+          // Create negative version of current points to subtract them
+          for (const [category, points] of Object.entries(totalPoints)) {
+            reversedPoints[category] = -points; // Negate the points
+          }
+          
+          // Subtract old points from user profile
+          await userService.updatePoints(reversedPoints);
+          console.log("Reversed previous points:", reversedPoints);
+        }
+        
+        // Step 2: Reset the processing flag
+        await ActivityReportService.resetProcessingFlag();
+        
+        // Step 3: Clear current state
+        setActivitiesProcessed(false);
+        setActivities([]);
+        setTotalPoints({});
+        
+        // Step 4: Generate new activities and points
+        generateActivities();
+      } catch (error) {
+        console.error("Error during recalculation:", error);
+        setError('Failed to recalculate: ' + error.message);
+        setLoading(false);
+      }
+    }
+  };
 
   return (
-    <div className={`min-h-screen flex flex-col ${theme.backgroundWhite}`}>
-      <h2 className={`text-4xl font-bold text-center py-6 ${theme.textViolet}`}>Daily Activity Report</h2>
-
-      <div className="flex flex-col items-center">
+    <div className="h-full">
+      <div className="flex flex-col items-center mt-6">
+        <h2 className="text-4xl font-bold">Daily Activity Report</h2>
+        
         <div className="mt-6 flex flex-col lg:flex-row gap-6">
           <div>
-            <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Daily Summary</h3>
-            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80 lg:w-100`} style={{ height: '300px', overflowY: 'auto' }}>
-              {loading ? (
-                <p className={theme.textSecondary}>Fetching data... Please wait.</p>
-              ) : error ? (
-                <p className={theme.alert}>{error}</p>
-              ) : (
-                <ul>
-                  {transformedActivities.map((activity, index) => (
-                    <li key={index} className="mb-2">
-                      <p className={theme.textSecondary}>{activity.text}</p>
-                      {activity.categories.map((category, catIndex) => (
-                        <p key={catIndex} className={category.points >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          <FontAwesomeIcon 
-                            icon={labelIcons[category.category]} 
-                            size="lg" 
-                            className={`${theme.textViolet} mr-2`} 
-                          />
-                          {category.category}: {category.points} points
-                        </p>
-                      ))}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+          <h3 className="text-xl text-center font-semibold mb-3 lg:mt-2">Daily Summary</h3>
+          <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px', overflowY: 'auto' }}>
+            {loading ? (
+              <p className="text-black">Analyzing your activities... Please wait.</p>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : activities.length === 0 ? (
+              <div>
+                <p className="text-gray-500 mb-4">No activities analyzed yet.</p>
+                {journal && (
+                  <button 
+                    className="px-4 py-2 bg-violet-600 text-white rounded hover:bg-violet-700"
+                    onClick={generateActivities}
+                  >
+                    Generate Analysis
+                  </button>
+                )}
+              </div>
+            ) : (
+              <ul>
+                {activities.map((activity, index) => (
+                  <li key={index} className="mb-2">
+                    <p className="text-black ">{activity.text}</p>
+                    <p className={`${activity.points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <FontAwesomeIcon icon={labelIcons[activity.category]} size="lg" className="text-black mr-2" />
+                      {activity.category}: {activity.points} points
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-
+          </div>
+          
           <div>
-            <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Total Points</h3>
-            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80 lg:w-100`} style={{ height: '300px'}}>
-              {loading ? (
-                <p className={theme.textSecondary}>Fetching data... Please wait.</p>
-              ) : error ? (
-                <p className={theme.alert}>{error}</p>
-              ) : (
+          <h3 className="text-xl text-center font-semibold mb-3 lg:mt-2">Total Points</h3>
+          <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px'}}>
+          {loading ? (
+              <p className="text-black">Calculating points... Please wait.</p>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : Object.keys(totalPoints).length === 0 ? (
+              <p className="text-gray-500">No points calculated yet.</p>
+            ) : (
+              <>
                 <ul>
                   {Object.entries(totalPoints).map(([category, points], index) => (
                     <li key={index} className="mb-2">
-                      <p className={points >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        <FontAwesomeIcon 
-                          icon={labelIcons[category]} 
-                          size="lg" 
-                          className={`${theme.textViolet} mr-2`}
-                        />
+                      <p className={`${points >= 0 ? 'text-green-600' : 'text-red-600'}`}> 
+                        <FontAwesomeIcon icon={labelIcons[category]} size="lg" className="text-black mr-2"/>
                         {category}: {points} points
                       </p>
                     </li>
                   ))}
                 </ul>
-              )}
-            </div>
+                {activitiesProcessed && (
+                  <p className="mt-4 text-sm text-gray-500">
+                    These points have been added to your profile.
+                  </p>
+                )}
+                {activitiesProcessed && (
+                  <button
+                    className="mt-4 px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                    onClick={handleRegenerateClick}
+                  >
+                    Recalculate
+                  </button>
+                )}
+              </>
+            )}
+          </div>
           </div>
         </div>
       </div>

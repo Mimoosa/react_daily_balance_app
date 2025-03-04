@@ -165,55 +165,39 @@ const getJournals = async (req, res) => {
  */
 const updateJournal = async (req, res) => {
     try {
+        const { id } = req.params;
         const { content } = req.body;
+        
+        // Check if journal belongs to user
         const journal = await Journal.findOne({
-            _id: req.params.id,
+            _id: id,
             user: req.user.id
         });
-
+        
         if (!journal) {
-            return res.status(404).json({ error: 'Journal entry not found' });
-        }
-
-        // Only allow updating today's entry
-        const today = new Date();
-        const entryDate = new Date(journal.date);
-        if (today.toDateString() !== entryDate.toDateString()) {
-            return res.status(400).json({ error: 'Only today\'s entry can be updated' });
-        }
-
-        // Get new AI analysis
-        const analysis = await analyzeJournalEntry(content);
-        
-        /**
-         * FEATURE: Reset points when journal content is updated
-         * 
-         * When a user updates their journal entry, we need to reset the points
-         * so that they can be recalculated based on the new content.
-         * This ensures that the points accurately reflect the updated journal content.
-         * 
-         * The points will be recalculated when the user visits the activity report page.
-         * The activityReportController.saveActivityPoints function will handle
-         * subtracting old points and adding new points to the user's total.
-         */
-        if (journal.points && Object.keys(journal.points).length > 0) {
-            // Reset points to trigger a new calculation
-            journal.points = {};
-            // Also clear any activities that were previously calculated
-            journal.activities = undefined;
+            return res.status(404).json({ error: 'Journal not found' });
         }
         
+        // Update content and reset processing flag for today's entry
         journal.content = content;
-        journal.analysis = {
-            ...analysis,
-            timestamp: new Date()
-        };
-
-        await journal.save();
         
+        // Check if this is today's entry
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const journalDate = new Date(journal.date);
+        journalDate.setHours(0, 0, 0, 0);
+        
+        if (journalDate.getTime() === today.getTime()) {
+            // Reset the processing flag for today's entry
+            journal.activitiesProcessed = false;
+            // Clear previous calculations
+            journal.activities = [];
+            journal.points = {};
+        }
+        
+        await journal.save();
         res.json(journal);
     } catch (error) {
-        console.error('Journal Update Error:', error);
         res.status(400).json({ error: error.message });
     }
 };

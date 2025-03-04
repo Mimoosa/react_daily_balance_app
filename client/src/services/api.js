@@ -135,10 +135,45 @@ const userService = {
             }
         });
         return handleResponse(response);
+    },
+    
+    /**
+     * Updates user's total points with new values
+     * @param {Object} points - Points to add to user's total by category
+     * @returns {Promise<Object>} Updated user's total points
+     * @throws {Error} If update fails
+     */
+    updatePoints: async (points) => {
+        const response = await fetch(`${API_URL}/users/update-points`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ points })
+        });
+        return handleResponse(response);
+    },
+
+    deleteAccount: async () => {
+        const response = await fetch(`${API_URL}/users/profile`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.message || 'Failed to delete account');
+        }
+
+        return await response.json();
     }
 };
 
-const ActicityReportService = {
+const ActivityReportService = {
     getTodaysEntry: async () => {
         const response = await fetch(`${API_URL}/activityRepo/journal`, {
             headers: {
@@ -160,14 +195,18 @@ const ActicityReportService = {
         return handleResponse(response);
     },
 
-    savePoints: async (points) => {
+    savePoints: async (points, activities) => {
+        console.log("Saving points and activities:", points, activities);
         const response = await fetch(`${API_URL}/activityRepo/points`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify({ points }),
+            body: JSON.stringify({ 
+                points, 
+                activities 
+            }),
         });
         return handleResponse(response);
     },
@@ -179,6 +218,19 @@ const ActicityReportService = {
             },
         });
         return handleResponse(response);
+    },
+
+    resetProcessingFlag: async () => {
+        console.log("Resetting activity processing flag");
+        const response = await fetch(`${API_URL}/activityRepo/reset-processing`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+        });
+        const data = await handleResponse(response);
+        console.log("Reset processing flag response:", data);
+        return data;
     },
 };
 
@@ -197,4 +249,4 @@ const handleResponse = async (response) => {
     return data;
 };
 
-export { authService, journalService, dashboardService, ActicityReportService, userService };
+export { authService, journalService, dashboardService, ActivityReportService, userService };

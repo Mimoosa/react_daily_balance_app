@@ -22,12 +22,26 @@ const journalSchema = new mongoose.Schema({
         default: Date.now,
         required: true
     },
+    // Flag to track whether activities have been processed
+    activitiesProcessed: {
+        type: Boolean,
+        default: false
+    },
+    // Points by category
     points: {
         Physical: { type: Number, default: 0 },
         Psychological: { type: Number, default: 0 },
         Social: { type: Number, default: 0 },
         Cognitive: { type: Number, default: 0 }
-    }
+    },
+    // Individual activities with their categorization and points
+    activities: [
+        {
+            text: String,
+            category: String,
+            points: Number
+        }
+    ]
 }, {
     timestamps: true
 });

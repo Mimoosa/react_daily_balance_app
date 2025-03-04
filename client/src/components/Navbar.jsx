@@ -1,99 +1,123 @@
-import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDay, faBook, faChartSimple, faUser, faBug } from '@fortawesome/free-solid-svg-icons';
+import { useTheme } from '../contexts/ThemeContext';
+import { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
+import devService from '../services/devApi';
 
-const Navbar = ({ isOpen, setIsOpen }) => {
+const Navbar = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const isLoggedIn = localStorage.getItem('token');
-  
+  const [showDevOptions, setShowDevOptions] = useState(false);
+  const [resetStatus, setResetStatus] = useState(null);
+
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  // Dev env check - only show dev button in development environment
+  const isDev = import.meta.env.DEV;
+
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    localStorage.removeItem('journal');
-    localStorage.removeItem('activities');
-    setIsOpen(false);
-    navigate('/');
+    navigate('/login');
+  };
+
+  const handleResetUserData = async () => {
+    if (window.confirm('This will delete ALL your journals and reset points to 100. Continue?')) {
+      try {
+        setResetStatus('loading');
+        const result = await devService.resetUserData();
+        setResetStatus('success');
+        console.log('Reset successful:', result);
+
+        alert('User data reset successfully. Points set to 100.');
+
+        setTimeout(() => {
+          setResetStatus(null);
+          window.location.reload();
+        }, 3000);
+      } catch (error) {
+        setResetStatus('error');
+        console.error('Reset failed:', error);
+        alert(`Reset failed: ${error.message}`);
+
+        setTimeout(() => {
+          setResetStatus(null);
+        }, 3000);
+      }
+    }
   };
 
   return (
-    <nav className={`flex justify-between sticky top-0 z-10 py-4 pl-4 lg:items-center ${theme.backgroundViolet}`}>
-      {/* Logo and theme toggle section */}
-      <div className="flex items-center space-x-3">
-        <h1 className="text-lg font-bold text-white lg:text-xl">
-          Daily Balance
-        </h1>
-        <ThemeToggle />
-      </div>
-      
-      <div className="flex flex-col space-y-6">
-        {isLoggedIn ? (
-          <>
-            <div className="block lg:hidden ml-auto pr-4 pt-0 mb-0">
-              <button 
-                onClick={() => { setIsOpen(!isOpen); }} 
-                className="text-white focus:outline-none"
+    <nav className={`${theme.backgroundViolet} px-4 py-3 shadow-lg flex justify-between items-center`}>
+      <Link to="/" className={`text-xl font-bold ${theme.textWhite}`}>
+        DailyBalance
+      </Link>
+
+      {isAuthenticated && (
+        <div className="flex items-center space-x-4">
+          <Link to="/journal" className={`${theme.textWhite} hover:${theme.textViolet}`}>
+            <FontAwesomeIcon icon={faBook} className="mr-1" /> Journal
+          </Link>
+          <Link to="/dashboard" className={`${theme.textWhite} hover:${theme.textViolet}`}>
+            <FontAwesomeIcon icon={faChartSimple} className="mr-1" /> Dashboard
+          </Link>
+          <Link to="/activity" className={`${theme.textWhite} hover:${theme.textViolet}`}>
+            <FontAwesomeIcon icon={faCalendarDay} className="mr-1" /> Activities
+          </Link>
+
+          <Link to="/profile" className={`${theme.textWhite} hover:${theme.textViolet}`}>
+            <FontAwesomeIcon icon={faUser} className="mr-1" /> Profile
+          </Link>
+          {/* Theme toggle */}
+          <ThemeToggle />
+
+          {/* Dev Button - only visible in development environment */}
+          {isDev && (
+            <div className="relative">
+              <button
+                onClick={() => setShowDevOptions(!showDevOptions)}
+                className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm flex items-center hover:bg-gray-200"
               >
-                <FontAwesomeIcon 
-                  icon={isOpen ? faTimes : faBars} 
-                  className="text-xl"
-                />
+                <FontAwesomeIcon icon={faBug} className="mr-1" /> Dev
               </button>
+
+              {showDevOptions && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                  <div className="py-1">
+                    <button
+                      onClick={handleResetUserData}
+                      disabled={resetStatus === 'loading'}
+                      className={`w-full text-left px-4 py-2 text-sm ${resetStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                        }`}
+                    >
+                      {resetStatus === 'loading' ? 'Resetting...' : 'Reset All Data (Points=100)'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-            
-            <div className={`${isOpen ? 'block' : 'hidden'} ml-auto mr-4 lg:block`}>
-              <ul className="flex flex-col lg:flex-row lg:items-center lg:space-x-4 space-y-4 lg:space-y-0">
-                <li className="mt-4 lg:mt-0">
-                  <NavLink 
-                    to="/journal" onClick={() => { setIsOpen(!isOpen); }}
-                    className={({ isActive }) => `text-white p-3 hover:bg-violet-900 rounded-md transition duration-200 ${
-                      isActive ? theme.backgroundActive : theme.backgroundViolet
-                    }`}>
-                    Journal
-                  </NavLink>
-                </li>
-                <li className="mt-4 lg:mt-0">
-                  <NavLink 
-                    to="/dashboard" onClick={() => { setIsOpen(!isOpen); }}
-                    className={({ isActive }) => `text-white p-3 hover:bg-violet-900 rounded-md transition duration-200 ${
-                      isActive ? theme.backgroundActive : theme.backgroundViolet
-                    }`}>
-                    Dashboard
-                  </NavLink>
-                </li>
-                <li className="mt-4 lg:mt-0">
-                  <NavLink 
-                    to="/activity" onClick={() => { setIsOpen(!isOpen); }}
-                    className={({ isActive }) => `text-white p-3 hover:bg-violet-900 rounded-md transition duration-200 ${
-                      isActive ? theme.backgroundActive : theme.backgroundViolet
-                    }`}>
-                    Activity Report
-                  </NavLink>
-                </li>
-                <li>
-                  <button 
-                    onClick={handleLogout}
-                    className="text-white p-3 hover:bg-violet-900 rounded-md transition duration-200">
-                    Logout
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </>
-        ) : (
-          <div className="ml-auto pr-4 pt-0">
-            <NavLink 
-              to="/login" 
-              className={({ isActive }) => `text-white p-3 hover:bg-violet-900 rounded-md transition duration-200 ${
-                isActive ? theme.backgroundActive : theme.backgroundViolet
-              }`}>
-              Login
-            </NavLink>
-          </div>
-        )}
-      </div>
+          )}
+
+          <button
+            onClick={handleLogout}
+            className={`bg-violet-100 text-violet-800 px-4 py-1 rounded`}
+          >
+            Logout
+          </button>
+        </div>
+      )}
+
+      {!isAuthenticated && (
+        <div className="flex space-x-4">
+          <Link to="/login" className="bg-violet-600 text-white px-4 py-1 rounded">
+            Login
+          </Link>
+          <Link to="/register" className="bg-violet-100 text-violet-800 px-4 py-1 rounded">
+            Register
+          </Link>
+        </div>
+      )}
     </nav>
   );
 };

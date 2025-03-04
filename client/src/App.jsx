@@ -9,6 +9,7 @@ import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage';
 import ActivityReportPage from './pages/ActivityReportPage';
 import FriendButton from './components/FriendButton';
+import ProfilePage from './pages/ProfilePage';
 
 const AppContent = () => {
   const { theme } = useTheme();
@@ -24,6 +25,7 @@ const AppContent = () => {
             <Route path="/journal" element={<JournalPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/activity" element={<ActivityReportPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Routes>
         {shouldShowFriendsButton && <FriendButton />}

@@ -25,10 +25,10 @@ const userSchema = new mongoose.Schema({
         ref: 'Journal'
     }],
     points: {
-        Physical: { type: Number, default: 0 },
-        Psychological: { type: Number, default: 0 },
-        Social: { type: Number, default: 0 },
-        Cognitive: { type: Number, default: 0 }
+        Physical: { type: Number, default: 100 },
+        Psychological: { type: Number, default: 100 },
+        Social: { type: Number, default: 100 },
+        Cognitive: { type: Number, default: 100 }
     }
 }, {
     timestamps: true
