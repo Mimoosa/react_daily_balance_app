@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import './App.css';
 import { BrowserRouter, Route, Routes} from 'react-router-dom';
-import HomePage from './pages/HomePage'
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import JournalPage from './pages/JournalPage';
 import Layout from './components/Layout';
-import DashboardPage from './pages/DashboardPage'
-import ActivityReportPage from './pages/ActivityReportPage'
-
-
+import DashboardPage from './pages/DashboardPage';
+import ActivityReportPage from './pages/ActivityReportPage';
+import FriendButton from './components/FriendButton';
 
 const AppContent = () => {
   const { theme } = useTheme();
+  const [shouldShowFriendsButton, setShouldShowFriendsButton] = useState(true);
+
   return (
     <div className={`min-h-screen ${theme.background}`}>
       <div className={`${theme.primary}`}>
@@ -25,7 +26,7 @@ const AppContent = () => {
             <Route path="/activity" element={<ActivityReportPage />} />
           </Route>
         </Routes>
-     
+        {shouldShowFriendsButton && <FriendButton />}
       </div>
     </div>
   );
@@ -35,7 +36,7 @@ const App = () => {
   return (
     <ThemeProvider>
       <BrowserRouter>
-      <AppContent />
+        <AppContent />
       </BrowserRouter>
     </ThemeProvider>
   );
