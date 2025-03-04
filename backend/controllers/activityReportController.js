@@ -45,35 +45,46 @@ const generatePoints = async (diaryEntry) => {
   
       Criteria for assigning points:
   - Sleep:
-    - Less than 3 hours: -50 points (Physical and Cognitive)
-    - 3 to 6 hours: -30 points (Physical and Cognitive)
+    - Less than 3 hours: -30 points (Physical and Cognitive)
+    - 3 to 6 hours: -15 points (Physical and Cognitive)
     - 7 hours: 10 points (Physical and Cognitive)
     - More than 7 hours: 20 points (Physical and Cognitive)
     - If time is not specified and the content is negative (e.g., not enough sleep): -20 points (Physical and Cognitive)
     - If time is not specified and the content is positive (e.g., well-rested): 20 points (Physical and Cognitive)
   - Physical activities:
-    - Vigorous activities (e.g., gym workouts, sports): 20 points per 30 minutes
-    - Moderate activities (e.g., walking, light exercises): 10 points per 30 minutes
-    - If time is not specified:
-      - Vigorous activities: 20 points
-      - Moderate activities: 10 points
-    - If the entry mentions spending most of the day on a vigorous activity: +100 points (Physical)
-    - If the entry mentions spending most of the day on a moderate activity: +50 points (Physical)
+     - Vigorous activities (e.g., gym workouts, sports):
+      - More than 3 hours: 30 points
+      - More than 5 hours: 40 points
+      - More than 8 hours: 50 points
+      - If time is not specified: 20 points
+      - If the entry mentions spending most of the day on a vigorous activity: +50 points (Physical)
+    - Moderate activities (e.g., walking, light exercises):
+      - More than 3 hours: 15 points
+      - More than 5 hours: 20 points
+      - More than 8 hours: 30 points
+      - If time is not specified: 10 points
+      - If the entry mentions spending most of the day on a moderate activity: +30 points (Physical)
   - Social activities:
-    - Any social interaction (e.g., meeting friends, attending events): 30 points
+    - Any social interaction (e.g., meeting friends, attending events): 20 points
   - Cognitive activities:
-    - Studying, working on assignments, reading: 10 points per 30 minutes
-    - If time is not specified: 10 points
-    - If the entry mentions spending most of the day on cognitive activities: +60 points (Cognitive)
+    - Studying, working on assignments, reading: 
+      - More than 3 hours: 30 points
+      - More than 5 hours: 40 points
+      - More than 8 hours: 50 points
+      - If time is not specified: 20 points
+      - If the entry mentions spending most of the day on cognitive activities: +50 points (Cognitive)
   - Psychological activities:
-    - Engaging in hobbies (e.g., traveling, visiting museums, playing games): 30 points regardless of time
-    - If the entry mentions spending most of the day on psychological activities: +60 points (Psychological)
+    - Engaging in hobbies (e.g., traveling, visiting museums, playing games): 20 points regardless of time
+    - If the entry mentions spending most of the day on psychological activities: +50 points (Psychological)
   - Negative activities:
     - Overindulgence in alcohol or unhealthy behaviors: -30 points (Physical)
-    - If the entry mentions spending most of the day sitting: -50 points (Physical)
+    - If the entry mentions spending most of the day sitting: -30 points (Physical)
   - Eating habits:
-    - Regular meals (e.g., breakfast, lunch, dinner): 30 points (Physical)
+    - Healthy eating habits: 30 points (Physical)
     - Consumption of harmful substances (e.g., alcohol, coffee, energy drinks, tobacco): -30 points (Physical)
+  - Feelings & Mood:
+    - Good mood: +20 points (Psychological)
+    - Bad mood: -20 points (Psychological)
 
     Ignore sentences related to weather or unrelated to the four categories.
   
@@ -81,6 +92,7 @@ const generatePoints = async (diaryEntry) => {
     [
       { "text": "Description of activity", "category": "Category", "points": Points }
     ]
+    Ensure that the total points for each category do not exceed 100 points.
     `;
   
     try {

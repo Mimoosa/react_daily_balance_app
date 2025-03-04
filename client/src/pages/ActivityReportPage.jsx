@@ -4,6 +4,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDumbbell, faBrain, faUsers, faHeart } from '@fortawesome/free-solid-svg-icons';
 import { ActicityReportService } from '../services/api';
 
+
+/**
+ * Transforms activities into a structured format for rendering.
+ * 
+ * @param {Array} activities - Array of activity objects.
+ * @returns {Array} Transformed array of activities with categorized points.
+ */
 const transformActivities = (activities) => {
   const transformed = {};
 
@@ -17,6 +24,12 @@ const transformActivities = (activities) => {
   return Object.values(transformed);
 };
 
+/**
+ * DailyActivityReport Component
+ * Displays the daily activity report including a summary and total points.
+ * 
+ * @component
+ */
 const DailyActivityReport = () => {
   const { theme } = useTheme();
   const [journal, setJournal] = useState(JSON.parse(localStorage.getItem("journal")) || false);
@@ -32,6 +45,10 @@ const DailyActivityReport = () => {
     Cognitive: faBrain
   };
 
+  /**
+   * Fetches the journal entry for today.
+   * Updates the local storage and state with the fetched data.
+   */
   const fetchJournal = async () => {
     try {
       const data = await ActicityReportService.getTodaysEntry();
@@ -49,6 +66,7 @@ const DailyActivityReport = () => {
 
   const fetchActivities = async (journal) => {
     try {
+      console.log(journal)
       const data = await ActicityReportService.getActivities(journal);
       localStorage.setItem("activities", JSON.stringify(data)); 
       setActivities(data);
@@ -65,6 +83,12 @@ const DailyActivityReport = () => {
 
   useEffect(() => {
     if (activities.length > 0) {
+        /**
+       * Calculates total points for each category based on activities.
+       * 
+       * @param {Array} activities - Array of activity objects.
+       * @returns {Object} Total points for each category.
+       */
       const calculateTotalPoints = (activities) => {
         const initialPoints = {
           Physical: 0,
@@ -77,8 +101,24 @@ const DailyActivityReport = () => {
           return acc;
         }, initialPoints);
       };
+      /**
+       * Normalizes points to ensure no category exceeds 100 points.
+       * 
+       * @param {Object} points - Object containing points for each category.
+       * @returns {Object} Normalized points for each category.
+       */
+      const normalizePoints = (points) => {
+        Object.keys(points).forEach((key) => {
+          if (points[key] > 100) {
+            points[key] = 100;
+          }
+        });
+        return points;
+      };
+
       const points = calculateTotalPoints(activities);
-      setTotalPoints(points);
+      const normalizedPoints = normalizePoints(points);
+      setTotalPoints(normalizedPoints);
 
       // Save points to the database
       ActicityReportService.savePoints(points).catch(error => {
@@ -99,7 +139,7 @@ const DailyActivityReport = () => {
         <div className="mt-6 flex flex-col lg:flex-row gap-6">
           <div>
             <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Daily Summary</h3>
-            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80`} style={{ height: '300px', overflowY: 'auto' }}>
+            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80 lg:w-100`} style={{ height: '300px', overflowY: 'auto' }}>
               {loading ? (
                 <p className={theme.textSecondary}>Fetching data... Please wait.</p>
               ) : error ? (
@@ -128,7 +168,7 @@ const DailyActivityReport = () => {
 
           <div>
             <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Total Points</h3>
-            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80`} style={{ height: '300px'}}>
+            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg ${theme.cardShadow} w-80 lg:w-100`} style={{ height: '300px'}}>
               {loading ? (
                 <p className={theme.textSecondary}>Fetching data... Please wait.</p>
               ) : error ? (
