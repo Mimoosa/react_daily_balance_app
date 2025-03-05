@@ -290,6 +290,137 @@ const ActivityReportService = {
 };
 
 /**
+ * Friends service for managing user friendship relationships
+ * @namespace
+ */
+const friendsService = {
+    /**
+     * Send a friend request to another user
+     * @param {string} recipientId - The ID of the recipient user
+     * @returns {Promise<Object>} Friend request result
+     * @throws {Error} If sending fails
+     */
+    sendRequest: async (recipientId) => {
+        const response = await fetch(`${API_URL}/friends/request`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ recipientId })
+        });
+        return handleResponse(response);
+    },
+
+    /**
+     * Get all friends for the current user
+     * @returns {Promise<Array>} List of friends
+     * @throws {Error} If fetching fails
+     */
+    getFriends: async () => {
+        const response = await fetch(`${API_URL}/friends`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    },
+
+    /**
+     * Get all friend requests for the current user
+     * @returns {Promise<Object>} Object containing received and sent requests
+     * @throws {Error} If fetching fails
+     */
+    getRequests: async () => {
+        const response = await fetch(`${API_URL}/friends/requests`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    },
+
+    /**
+     * Accept a friend request
+     * @param {string} requestId - The ID of the friend request
+     * @returns {Promise<Object>} Result of acceptance
+     * @throws {Error} If acceptance fails
+     */
+    acceptRequest: async (requestId) => {
+        const response = await fetch(`${API_URL}/friends/request/${requestId}/accept`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    },
+
+    /**
+     * Reject a friend request
+     * @param {string} requestId - The ID of the friend request
+     * @returns {Promise<Object>} Result of rejection
+     * @throws {Error} If rejection fails
+     */
+    rejectRequest: async (requestId) => {
+        const response = await fetch(`${API_URL}/friends/request/${requestId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    },
+
+    /**
+     * Cancel a friend request
+     * @param {string} requestId - The ID of the friend request
+     * @returns {Promise<Object>} Result of cancellation
+     * @throws {Error} If cancellation fails
+     */
+    cancelRequest: async (requestId) => {
+        const response = await fetch(`${API_URL}/friends/request/${requestId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    },
+
+    /**
+     * Remove a friend
+     * @param {string} friendId - The ID of the friend to remove
+     * @returns {Promise<Object>} Result of removal
+     * @throws {Error} If removal fails
+     */
+    removeFriend: async (friendId) => {
+        const response = await fetch(`${API_URL}/friends/${friendId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    },
+
+    /**
+     * Search for users
+     * @param {string} query - The search term
+     * @returns {Promise<Array>} List of matching users
+     * @throws {Error} If search fails
+     */
+    searchUsers: async (query) => {
+        const response = await fetch(`${API_URL}/friends/search?query=${encodeURIComponent(query)}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    }
+};
+
+/**
  * Handles API response and throws error if response is not ok
  * @param {Response} response - Fetch API response object
  * @returns {Promise<any>} Parsed response data
@@ -304,4 +435,11 @@ const handleResponse = async (response) => {
     return data;
 };
 
-export { authService, journalService, dashboardService, ActivityReportService, userService };
+export { 
+    authService, 
+    journalService, 
+    dashboardService, 
+    ActivityReportService, 
+    userService,
+    friendsService 
+};
