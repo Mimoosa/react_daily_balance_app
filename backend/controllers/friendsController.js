@@ -23,13 +23,20 @@ const sendFriendRequest = async (req, res) => {
       return res.status(400).json({ error: "You cannot send a friend request to yourself" });
     }
 
-    // Check if recipient exists
+    // Find both users
+    const requester = await User.findById(requesterId);
     const recipient = await User.findById(recipientId);
+    
     if (!recipient) {
       return res.status(404).json({ error: "Recipient not found" });
     }
 
-    // Check if a request already exists
+    // Check if they are already friends
+    if (requester.friends.includes(recipientId)) {
+      return res.status(400).json({ error: "You are already friends" });
+    }
+    
+    // Check if a request already exists in the Friends collection (legacy check)
     const existingRequest = await Friends.findOne({
       $or: [
         { requester: requesterId, recipient: recipientId },
@@ -46,8 +53,25 @@ const sendFriendRequest = async (req, res) => {
         return res.status(400).json({ error: "Unable to send request" });
       }
     }
+    
+    // Check for existing requests in user objects
+    const existingReceivedRequest = recipient.friendRequests.received.find(
+      req => req.user.toString() === requesterId.toString()
+    );
+    
+    const existingSentRequest = requester.friendRequests.sent.find(
+      req => req.user.toString() === recipientId.toString()
+    );
+    
+    if (existingReceivedRequest || existingSentRequest) {
+      return res.status(400).json({ error: "Friend request already exists" });
+    }
 
-    // Create new friend request
+    // Add friend request to both users
+    await requester.addFriendRequest(recipientId, 'sent');
+    await recipient.addFriendRequest(requesterId, 'received');
+
+    // Also create in Friends collection for backward compatibility
     const friendRequest = new Friends({
       requester: requesterId,
       recipient: recipientId,
@@ -77,27 +101,78 @@ const acceptFriendRequest = async (req, res) => {
   try {
     const userId = req.user.id;
     const { requestId } = req.params;
-
-    // Find the friend request
-    const friendRequest = await Friends.findOne({
-      _id: requestId,
-      recipient: userId,
-      status: 'pending'
-    });
-
-    if (!friendRequest) {
-      return res.status(404).json({ error: "Friend request not found" });
+    
+    console.log(`Attempting to accept friend request. UserId: ${userId}, RequestId: ${requestId}`);
+    
+    // Find the current user
+    const recipient = await User.findById(userId);
+    
+    if (!recipient) {
+      return res.status(404).json({ error: "User not found" });
     }
-
-    // Update status to accepted
-    friendRequest.status = 'accepted';
-    await friendRequest.save();
-
+    
+    // Find the request in the user's received requests
+    const receivedRequest = recipient.friendRequests.received.find(
+      req => req._id.toString() === requestId
+    );
+    
+    if (!receivedRequest) {
+      // Try to find in legacy Friends collection as fallback
+      const friendRequest = await Friends.findOne({
+        _id: requestId,
+        recipient: userId,
+        status: 'pending'
+      });
+      
+      if (!friendRequest) {
+        return res.status(404).json({ error: "Friend request not found" });
+      }
+      
+      // Process using legacy approach
+      const requester = await User.findById(friendRequest.requester);
+      if (!requester) {
+        return res.status(404).json({ error: "Requester user not found" });
+      }
+      
+      // Update status in Friends collection
+      friendRequest.status = 'accepted';
+      await friendRequest.save();
+      
+      // Add to friends lists
+      await recipient.addFriend(requester._id);
+      await requester.addFriend(recipient._id);
+      
+      return res.json({
+        message: "Friend request accepted (legacy)",
+        friendship: friendRequest
+      });
+    }
+    
+    // Process using the new User model approach
+    const requesterId = receivedRequest.user;
+    const requester = await User.findById(requesterId);
+    
+    if (!requester) {
+      return res.status(404).json({ error: "Requester not found" });
+    }
+    
+    // Add to friends lists
+    await recipient.addFriend(requester._id);
+    await requester.addFriend(recipient._id);
+    
+    // Remove request from both users' request lists
+    await recipient.removeFriendRequest(requester._id, 'received');
+    await requester.removeFriendRequest(recipient._id, 'sent');
+    
     res.json({
       message: "Friend request accepted",
-      friendship: friendRequest
+      friendship: {
+        requester: requester._id,
+        recipient: recipient._id,
+        status: 'accepted'
+      }
     });
-
+    
   } catch (error) {
     console.error('Accept friend request error:', error);
     res.status(500).json({ error: error.message });
@@ -114,8 +189,10 @@ const rejectFriendRequest = async (req, res) => {
   try {
     const userId = req.user.id;
     const { requestId } = req.params;
+    
+    console.log(`Attempting to reject friend request. UserId: ${userId}, RequestId: ${requestId}`);
 
-    // Find the friend request
+    // Find the friend request in legacy collection
     const friendRequest = await Friends.findOne({
       _id: requestId,
       recipient: userId,
@@ -123,12 +200,28 @@ const rejectFriendRequest = async (req, res) => {
     });
 
     if (!friendRequest) {
+      console.log(`Friend request not found with ID: ${requestId} for user: ${userId}`);
       return res.status(404).json({ error: "Friend request not found" });
     }
 
-    // Update status to rejected
+    console.log(`Found friend request: ${JSON.stringify(friendRequest)}`);
+
+    // Also find both users involved
+    const recipient = await User.findById(userId);
+    const requester = await User.findById(friendRequest.requester);
+    
+    // Update status to rejected in Friends collection
     friendRequest.status = 'rejected';
     await friendRequest.save();
+    
+    // Also update User model if available
+    if (recipient && requester) {
+      // Remove from recipient's received requests
+      await recipient.removeFriendRequest(requester._id, 'received');
+      
+      // Remove from requester's sent requests
+      await requester.removeFriendRequest(recipient._id, 'sent');
+    }
 
     res.json({
       message: "Friend request rejected",
@@ -137,6 +230,38 @@ const rejectFriendRequest = async (req, res) => {
 
   } catch (error) {
     console.error('Reject friend request error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Cancel a friend request sent by the current user
+ * @param {Object} req - Express request object with request ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<Object>} Result message or error
+ */
+const cancelFriendRequest = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { requestId } = req.params;
+
+    // Find and delete the pending request
+    const result = await Friends.findOneAndDelete({
+      _id: requestId,
+      requester: userId,
+      status: 'pending'
+    });
+
+    if (!result) {
+      return res.status(404).json({ error: "Friend request not found or cannot be canceled" });
+    }
+
+    res.json({
+      message: "Friend request canceled successfully"
+    });
+
+  } catch (error) {
+    console.error('Cancel friend request error:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -184,28 +309,20 @@ const getFriends = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Find all accepted friendships
-    const friendships = await Friends.find({
-      $or: [
-        { requester: userId, status: 'accepted' },
-        { recipient: userId, status: 'accepted' }
-      ]
-    }).populate('requester recipient', 'name email');
+    // Get user with populated friends
+    const user = await User.findById(userId).populate('friends', 'username email image');
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    // Extract friend data
-    const friends = friendships.map(friendship => {
-      const friend = friendship.requester._id.toString() === userId 
-        ? friendship.recipient 
-        : friendship.requester;
-      
-      return {
-        _id: friend._id,
-        name: friend.name,
-        email: friend.email,
-        friendshipId: friendship._id,
-        since: friendship.updatedAt
-      };
-    });
+    // Format friends data
+    const friends = user.friends.map(friend => ({
+      _id: friend._id,
+      username: friend.username,
+      email: friend.email,
+      image: friend.image
+    }));
 
     res.json(friends);
 
@@ -225,36 +342,37 @@ const getFriendRequests = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Find all received pending requests
-    const receivedRequests = await Friends.find({
-      recipient: userId,
-      status: 'pending'
-    }).populate('requester', 'name email');
-
-    // Find all sent pending requests
-    const sentRequests = await Friends.find({
-      requester: userId,
-      status: 'pending'
-    }).populate('recipient', 'name email');
+    // Get user with populated friend requests - ensure username field is included
+    const user = await User.findById(userId)
+      .populate('friendRequests.received.user', 'username name email image') // Include both username and name
+      .populate('friendRequests.sent.user', 'username name email image');    // Include both username and name
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     // Format received requests
-    const formattedReceived = receivedRequests.map(request => ({
+    const formattedReceived = user.friendRequests.received.map(request => ({
       _id: request._id,
       user: {
-        _id: request.requester._id,
-        name: request.requester.name,
-        email: request.requester.email
+        _id: request.user._id,
+        username: request.user.username,  // Ensure username is included
+        name: request.user.name,
+        email: request.user.email,
+        image: request.user.image
       },
       createdAt: request.createdAt
     }));
 
     // Format sent requests
-    const formattedSent = sentRequests.map(request => ({
+    const formattedSent = user.friendRequests.sent.map(request => ({
       _id: request._id,
       user: {
-        _id: request.recipient._id,
-        name: request.recipient.name,
-        email: request.recipient.email
+        _id: request.user._id,
+        username: request.user.username,  // Ensure username is included
+        name: request.user.name,
+        email: request.user.email,
+        image: request.user.image
       },
       createdAt: request.createdAt
     }));
@@ -271,6 +389,49 @@ const getFriendRequests = async (req, res) => {
 };
 
 /**
+ * Debug helper - Check if users matching a query exist in the database
+ * @param {string} query - The search string
+ */
+const debugCheckUsersExist = async (query) => {
+  try {
+    console.log(`DEBUG: Performing direct database check for "${query}"`);
+    
+    // Check with exact match first
+    const exactMatches = await User.find({
+      name: query
+    }).select('name email');
+    
+    console.log(`DEBUG: Exact name matches:`, exactMatches.map(u => u.name));
+    
+    // Check with case-insensitive regex
+    const regexMatches = await User.find({
+      name: { $regex: query, $options: 'i' }
+    }).select('name email');
+    
+    console.log(`DEBUG: Regex name matches:`, regexMatches.map(u => u.name));
+    
+    // Check emails too
+    const emailMatches = await User.find({
+      email: { $regex: query, $options: 'i' }
+    }).select('name email');
+    
+    console.log(`DEBUG: Email matches:`, emailMatches.map(u => u.email));
+    
+    // Check the total number of users in the database
+    const totalUsers = await User.countDocuments();
+    console.log(`DEBUG: Total users in database: ${totalUsers}`);
+    
+    // List some sample users if total count is reasonable
+    if (totalUsers < 20) {
+      const sampleUsers = await User.find().select('name email').limit(10);
+      console.log(`DEBUG: Sample users in database:`, sampleUsers.map(u => u.name));
+    }
+  } catch (error) {
+    console.error('DEBUG ERROR:', error);
+  }
+};
+
+/**
  * Search for users to add as friends
  * @param {Object} req - Express request object with search term
  * @param {Object} res - Express response object
@@ -278,22 +439,33 @@ const getFriendRequests = async (req, res) => {
  */
 const searchUsers = async (req, res) => {
   try {
+    console.log('Search users request received:', req.query);
     const userId = req.user.id;
     const { query } = req.query;
 
     if (!query || query.length < 2) {
+      console.log('Search rejected: Query too short');
       return res.status(400).json({ error: "Search query must be at least 2 characters" });
     }
 
+    console.log(`Searching for users matching: "${query}" (excluding user ID: ${userId})`);
+    
     // Find users matching the search query (exclude current user)
     const users = await User.find({
       _id: { $ne: userId },
       $or: [
-        { name: { $regex: query, $options: 'i' } },
+        { username: { $regex: query, $options: 'i' } },
         { email: { $regex: query, $options: 'i' } }
       ]
-    }).select('_id name email').limit(10);
-
+    }).select('_id username email image').limit(10);
+    
+    console.log(`Found ${users.length} matching users:`, users);
+    
+    // If no users found, return empty array immediately
+    if (users.length === 0) {
+      return res.json([]);
+    }
+    
     // Get all friend relationships for current user
     const friendships = await Friends.find({
       $or: [
@@ -301,7 +473,9 @@ const searchUsers = async (req, res) => {
         { recipient: userId }
       ]
     });
-
+    
+    console.log(`Found ${friendships.length} existing relationships for user`);
+    
     // Add relationship status to each user
     const usersWithStatus = await Promise.all(users.map(async user => {
       const friendship = friendships.find(f => 
@@ -314,18 +488,23 @@ const searchUsers = async (req, res) => {
       if (friendship) {
         status = friendship.status;
         requesterId = friendship.requester.toString();
+        console.log(`User ${user.username || user.email} has relationship status: ${status}`);
+      } else {
+        console.log(`User ${user.username || user.email} has no relationship with current user`);
       }
 
+      // Make sure we include all user fields in the response
       return {
         _id: user._id,
-        name: user.name,
+        username: user.username,
         email: user.email,
+        image: user.image,
         status,
-        // Add this field to know who sent the request
         sentByMe: requesterId === userId
       };
     }));
-
+    
+    console.log(`Returning ${usersWithStatus.length} users with status information:`, usersWithStatus);
     res.json(usersWithStatus);
 
   } catch (error) {
@@ -334,45 +513,13 @@ const searchUsers = async (req, res) => {
   }
 };
 
-/**
- * Cancel a friend request sent by the current user
- * @param {Object} req - Express request object with request ID
- * @param {Object} res - Express response object
- * @returns {Promise<Object>} Result message or error
- */
-const cancelFriendRequest = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { requestId } = req.params;
-
-    // Find and delete the pending request
-    const result = await Friends.findOneAndDelete({
-      _id: requestId,
-      requester: userId,
-      status: 'pending'
-    });
-
-    if (!result) {
-      return res.status(404).json({ error: "Friend request not found or cannot be canceled" });
-    }
-
-    res.json({
-      message: "Friend request canceled successfully"
-    });
-
-  } catch (error) {
-    console.error('Cancel friend request error:', error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
 module.exports = {
   sendFriendRequest,
   acceptFriendRequest,
   rejectFriendRequest,
+  cancelFriendRequest,
   removeFriend,
   getFriends,
   getFriendRequests,
-  searchUsers,
-  cancelFriendRequest
+  searchUsers
 };
