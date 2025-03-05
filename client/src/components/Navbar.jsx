@@ -48,6 +48,27 @@ const Navbar = () => {
     }
   };
 
+  const handleDebugPoints = async () => {
+    try {
+      setResetStatus('loading');
+      const result = await devService.debugPoints();
+      console.log('Points debug result:', result);
+      
+      if (result.updated) {
+        alert('Points structure repaired successfully.');
+      } else {
+        alert('Points structure is already valid. No repairs needed.');
+      }
+      
+      setResetStatus(null);
+      setShowDevOptions(false);
+    } catch (error) {
+      console.error('Debug points failed:', error);
+      alert(`Debug points failed: ${error.message}`);
+      setResetStatus(null);
+    }
+  };
+
   return (
     <nav className={`${theme.backgroundViolet} px-4 py-3 shadow-lg flex justify-between items-center`}>
       <Link to="/" className={`text-xl font-bold ${theme.textWhite}`}>
@@ -91,6 +112,15 @@ const Navbar = () => {
                         }`}
                     >
                       {resetStatus === 'loading' ? 'Resetting...' : 'Reset All Data (Points=100)'}
+                    </button>
+                    
+                    <button
+                      onClick={handleDebugPoints}
+                      disabled={resetStatus === 'loading'}
+                      className={`w-full text-left px-4 py-2 text-sm ${resetStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                        }`}
+                    >
+                      {resetStatus === 'loading' ? 'Debugging...' : 'Debug & Repair Points'}
                     </button>
                   </div>
                 </div>

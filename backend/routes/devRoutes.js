@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { resetUserData } = require('../controllers/devController');
 const { protect } = require('../middleware/auth');
+const { resetUserData, debugUserPoints } = require('../controllers/devController');
 
-// Reset user data (journals and points) for testing
+// Dev routes - all protected
 router.post('/reset-user-data', protect, resetUserData);
+router.post('/debug-points', protect, debugUserPoints);
 
 module.exports = router;

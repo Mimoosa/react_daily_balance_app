@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import './App.css';
-import { BrowserRouter, Route, Routes} from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import JournalPage from './pages/JournalPage';
@@ -10,10 +10,12 @@ import DashboardPage from './pages/DashboardPage';
 import ActivityReportPage from './pages/ActivityReportPage';
 import FriendButton from './components/FriendButton';
 import ProfilePage from './pages/ProfilePage';
+import DebugPointsPage from './pages/DebugPointsPage';
 
 const AppContent = () => {
   const { theme } = useTheme();
   const [shouldShowFriendsButton, setShouldShowFriendsButton] = useState(true);
+  const isDev = import.meta.env.DEV;
 
   return (
     <div className={`min-h-screen ${theme.background}`}>
@@ -22,10 +24,14 @@ const AppContent = () => {
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+
             <Route path="/journal" element={<JournalPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/activity" element={<ActivityReportPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            {isDev && (
+              <Route path="/debug/points" element={<DebugPointsPage />} />
+            )}
           </Route>
         </Routes>
         {shouldShowFriendsButton && <FriendButton />}
@@ -37,9 +43,9 @@ const AppContent = () => {
 const App = () => {
   return (
     <ThemeProvider>
-      <BrowserRouter>
+      <Router>
         <AppContent />
-      </BrowserRouter>
+      </Router>
     </ThemeProvider>
   );
 };

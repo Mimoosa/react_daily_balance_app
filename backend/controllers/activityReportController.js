@@ -1,6 +1,6 @@
 const Journal = require('../models/Journal');
 const ActivityPoints = require('../models/ActivityPoints');
-const User = require('../models/User'); // Add User model import
+const User = require('../models/User');
 
 const model = require("../models/geminiModel");
 
@@ -24,20 +24,26 @@ const getTodaysJournal = async (req, res) => {
             return res.status(404).json({ error: "Today's journal entry not found" });
         }
 
-        // Return both content and points if they exist
+        const pointsData = todaysJournal.points && typeof todaysJournal.points === 'object' 
+            ? todaysJournal.points 
+            : {};
+        
+        const hasPoints = Object.keys(pointsData).length > 0;
+        
         res.json({
             content: todaysJournal.content,
-            points: todaysJournal.points || null,
+            points: hasPoints ? pointsData : null,
             activities: todaysJournal.activities || null,
-            activitiesProcessed: todaysJournal.activitiesProcessed || false
+            activitiesProcessed: todaysJournal.activitiesProcessed || false,
+            calculatedAt: todaysJournal.activitiesCalculatedAt || null
         });
     } catch (error) {
+        console.error('[ERROR] getTodaysJournal:', error);
         res.status(400).json({ error: error.message });
     }
 };
 
 const generatePoints = async (diaryEntry) => {
-    console.log(diaryEntry)
     const prompt = `
     Gemini, please analyze the following diary entry and categorize each activity into one of the following categories: Physical, Cognitive, Social, and Psychological. Assign points to each activity based on the criteria provided below. Here is the diary entry:
   
@@ -81,148 +87,190 @@ const generatePoints = async (diaryEntry) => {
   
     try {
         const result = await model.generateContent(prompt);
-    
-        // The ?. (optional chaining) operator allows you to safely access properties that might not exist. If result is null or undefined, the entire expression will return undefined, instead of throwing an error.
-        if (!result?.response?.candidates?.length) {
-          return false; // Return early if the response structure is not as expected
+        
+        if (!result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            console.error("Invalid model response structure:", result);
+            throw new Error("Invalid model response structure");
         }
-        // Extract the relevant text from the response
+
         const generatedText = result.response.candidates[0].content.parts[0].text;
-        return generatedText;
-      } catch (error) {
-        console.error("LLM Error:", error);
-        throw new Error(`Failed to generate fitness plan: ${error.message}`);
-      }
+
+        const jsonMatch = generatedText.match(/```json\s*([\s\S]*?)\s*```/) || 
+                         generatedText.match(/\[([\s\S]*?)\]/);
+
+        if (!jsonMatch) {
+            console.error("No JSON found in response:", generatedText);
+            return JSON.stringify([{
+                "text": "No activities could be extracted from the entry",
+                "category": "Psychological",
+                "points": 0
+            }]);
+        }
+
+        try {
+            JSON.parse(jsonMatch[1]);
+            return jsonMatch[1];
+        } catch (parseError) {
+            console.error("Invalid JSON in response:", parseError);
+            throw new Error("Invalid JSON in model response");
+        }
+    } catch (error) {
+        console.error("Model generation error:", error);
+        throw error;
+    }
 };
 
 const generateResponse = async (req, res) => {
-  try {
-    const { entry } = req.body;
-   /*  if (!entry) {
-      return res.status(400).json({ message: "Today's diary entry is required." });
-    }
- */
-   
-    const markdownResponse = await generatePoints(entry);
-    console.log('Markdown response:', markdownResponse);
-
-    const jsonMatch = markdownResponse.match(/```json\s*([\s\S]*?)\s*```/);
-    console.log('JSON match:', jsonMatch);
-
-    if (!jsonMatch) {
-      console.error("No JSON found in the response");
-      return res.status(500).json({ error: "Invalid response format. No JSON found." });
-    }
-
-    let activities;
     try {
-      activities = JSON.parse(jsonMatch[1]);
-      
-      // Calculate category totals for console logging
-      const categoryTotals = activities.reduce((acc, activity) => {
-        const { category, points } = activity;
-        if (!acc[category]) acc[category] = 0;
-        acc[category] += points;
-        return acc;
-      }, {});
-      
-      console.log('Activity Points by Category:', categoryTotals);
-    } catch (parseError) {
-      console.error('Error parsing JSON:', parseError);
-      return res.status(500).json({ error: "Error parsing JSON response." });
+        const { entry } = req.body;
+        
+        if (!entry || typeof entry !== 'string') {
+            return res.status(400).json({ 
+                error: "Invalid entry format. Expected a non-empty string." 
+            });
+        }
+
+        const markdownResponse = await generatePoints(entry);
+        
+        if (!markdownResponse) {
+            return res.status(500).json({ 
+                error: "Failed to generate activities from entry" 
+            });
+        }
+
+        let activities;
+        try {
+            activities = JSON.parse(markdownResponse);
+            
+            if (!Array.isArray(activities)) {
+                activities = [activities];
+            }
+            
+            activities = activities.map(activity => ({
+                text: String(activity.text || "Unspecified activity"),
+                category: ['Physical', 'Psychological', 'Social', 'Cognitive'].includes(activity.category) 
+                    ? activity.category 
+                    : 'Psychological',
+                points: Number(activity.points) || 0
+            }));
+
+        } catch (parseError) {
+            console.error('[ERROR] JSON parsing failed:', parseError);
+            return res.status(500).json({ 
+                error: "Failed to parse activity data" 
+            });
+        }
+
+        res.json(activities);
+    } catch (err) {
+        console.error("[ERROR] Activity generation failed:", err);
+        res.status(500).json({ 
+            error: err.message || "Failed to generate activities" 
+        });
     }
-    res.json(activities);
-  } catch (err) {
-    console.error("Error in generateResponse:", err);
-    res.status(500).json({ message: "Internal server error", error: err.message });
-  }
 };
 
 const saveActivityPoints = async (req, res) => {
     try {
-        const { points, activities } = req.body;
+        const { 
+            points, 
+            activities, 
+            isRecalculation: explicitRecalculation, 
+            previousPoints,
+            pointsAlreadySubtracted 
+        } = req.body;
         const userId = req.user.id;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        console.log('Saving points and activities:', points, activities);
+        if (!points || typeof points !== 'object' || Array.isArray(points)) {
+            console.error('Invalid points format:', points);
+            return res.status(400).json({ error: "Points must be an object with category keys" });
+        }
 
-        const journal = await Journal.findOne({
+        const journalQuery = {
             user: userId,
             date: {
                 $gte: today,
                 $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
             }
-        });
+        };
 
-        if (!journal) {
+        const currentJournal = await Journal.findOne(journalQuery);
+        if (!currentJournal) {
             return res.status(404).json({ error: "Today's journal entry not found" });
         }
 
-        // Get the current user to properly handle point updates
+        const autoDetectedRecalculation = Boolean(
+            currentJournal.points && 
+            Object.keys(currentJournal.points || {}).length > 0
+        );
+        
+        const isRecalculation = explicitRecalculation === true || autoDetectedRecalculation;
+
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // Check if this journal already had points processed
-        const previousPoints = journal.activitiesProcessed ? { ...journal.points } : null;
+        const basePoints = {
+            Physical: 100,
+            Cognitive: 100,
+            Social: 100,
+            Psychological: 100
+        };
 
-        // Update the points in the journal
-        journal.points = points;
-        
-        if (activities && Array.isArray(activities)) {
-            journal.activities = activities;
-            console.log(`Saved ${activities.length} activities to journal`);
-        }
-        
-        // Mark as processed
-        journal.activitiesProcessed = true;
-        
-        // If this entry had previous points, we need to adjust the user's total points
-        if (previousPoints) {
-            console.log('Previous points found, adjusting user total points');
+        let updatedTotalPoints = { ...basePoints, ...(user.totalPoints || {}) };
+        const pointsToDeduct = previousPoints || currentJournal.points || {};
             
-            // Calculate the net difference to apply
-            const pointsDiff = {};
-            
-            for (const category in points) {
-                const oldValue = previousPoints[category] || 0;
-                const newValue = points[category] || 0;
-                pointsDiff[category] = newValue - oldValue;
-            }
-            
-            console.log('Points difference to apply:', pointsDiff);
-            
-            // Apply the net difference to user's total points
-            for (const [category, diff] of Object.entries(pointsDiff)) {
-                if (!user.totalPoints) user.totalPoints = {};
-                if (!user.totalPoints[category]) user.totalPoints[category] = 0;
-                user.totalPoints[category] += diff;
-            }
-        } else {
-            // No previous points, just add the new points directly
-            console.log('No previous points, adding new points directly');
-            for (const [category, value] of Object.entries(points)) {
-                if (!user.totalPoints) user.totalPoints = {};
-                if (!user.totalPoints[category]) user.totalPoints[category] = 0;
-                user.totalPoints[category] += value;
+        if (isRecalculation && Object.keys(pointsToDeduct).length > 0 && !pointsAlreadySubtracted) {
+            for (const [category, value] of Object.entries(pointsToDeduct)) {
+                if (typeof value === 'number' && updatedTotalPoints[category] !== undefined) {
+                    updatedTotalPoints[category] -= value;
+                }
             }
         }
-        
-        // Save both the journal and user
-        await Promise.all([journal.save(), user.save()]);
-        
-        console.log('Journal and user points updated successfully');
+
+        for (const [category, value] of Object.entries(points)) {
+            if (typeof value === 'number') {
+                updatedTotalPoints[category] += value;
+            }
+        }
+
+        for (const category in updatedTotalPoints) {
+            updatedTotalPoints[category] = Math.max(0, updatedTotalPoints[category]);
+        }
+
+        const journal = await Journal.findOneAndUpdate(
+            journalQuery,
+            {
+                $set: {
+                    points: points,
+                    activities: activities,
+                    activitiesProcessed: true,
+                    activitiesCalculatedAt: new Date()
+                }
+            },
+            { new: true }
+        );
+
+        await User.findByIdAndUpdate(
+            userId,
+            { $set: { totalPoints: updatedTotalPoints } },
+            { new: true }
+        );
 
         res.json({
-            points: journal.points,
-            activities: journal.activities,
-            activitiesProcessed: journal.activitiesProcessed
+            points: points,
+            activities: activities,
+            activitiesProcessed: true,
+            calculatedAt: journal.activitiesCalculatedAt,
+            totalPoints: updatedTotalPoints
         });
+
     } catch (error) {
-        console.error('Error saving activity points:', error);
-        res.status(400).json({ error: error.message });
+        console.error('Error processing activity points:', error);
+        res.status(500).json({ error: `Error processing activity points: ${error.message}` });
     }
 };
 
@@ -252,48 +300,84 @@ const resetProcessingFlag = async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const journal = await Journal.findOne({
+        const journalQuery = {
             user: userId,
             date: {
                 $gte: today,
                 $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000)
             }
-        });
+        };
+        
+        const currentJournal = await Journal.findOne(journalQuery);
 
-        if (!journal) {
+        if (!currentJournal) {
             return res.status(404).json({ error: "Today's journal entry not found" });
         }
 
-        // Store the previous points for the response and for updating user totals
-        const previousPoints = { ...journal.points };
+        let previousPoints = null;
         
-        // Get the current user to adjust their total points
-        const user = await User.findById(userId);
-        if (user && previousPoints) {
-            // Subtract the previous points from user's total points
-            for (const [category, value] of Object.entries(previousPoints)) {
-                if (user.totalPoints && user.totalPoints[category] !== undefined) {
-                    user.totalPoints[category] -= value;
-                    console.log(`Subtracted ${value} points from user's ${category} category`);
-                }
-            }
-            await user.save();
+        if (currentJournal.points && Object.keys(currentJournal.points).length > 0) {
+            previousPoints = { ...currentJournal.points };
         }
         
-        // Reset the processing flag and clear previous data
-        journal.activitiesProcessed = false;
-        journal.activities = [];
-        journal.points = {};
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
         
-        await journal.save();
+        if (previousPoints && Object.keys(previousPoints).length > 0) {
+            const updatedTotalPoints = { ...(user.totalPoints || {}) };
+            
+            for (const [category, value] of Object.entries(previousPoints)) {
+                if (updatedTotalPoints[category] !== undefined && typeof value === 'number') {
+                    updatedTotalPoints[category] -= value;
+                }
+            }
+            
+            for (const category in updatedTotalPoints) {
+                updatedTotalPoints[category] = Math.max(0, updatedTotalPoints[category]);
+            }
+            
+            await User.findByIdAndUpdate(
+                userId,
+                { $set: { totalPoints: updatedTotalPoints } },
+                { new: true }
+            );
+            
+            console.log(`Points reversed for user ${userId}:`, 
+                Object.entries(previousPoints).reduce((acc, [category, value]) => {
+                    acc[category] = -value;
+                    return acc;
+                }, {})
+            );
+        }
+        
+        const journal = await Journal.findOneAndUpdate(
+            journalQuery,
+            {
+                $set: {
+                    activitiesProcessed: false,
+                    activities: [],
+                    points: {},
+                    activitiesCalculatedAt: null
+                }
+            },
+            { new: true }
+        );
+        
+        if (!journal) {
+            return res.status(500).json({ error: "Failed to reset journal entry" });
+        }
         
         res.json({ 
             message: "Processing flag reset successfully",
-            previousPoints
+            previousPoints: previousPoints || {},
+            hadPoints: !!previousPoints,
+            pointsReset: !!previousPoints
         });
     } catch (error) {
-        console.error('Error resetting processing flag:', error);
-        res.status(400).json({ error: error.message });
+        console.error('Error resetting activity processing:', error);
+        res.status(500).json({ error: `Error resetting activity processing: ${error.message}` });
     }
 };
 

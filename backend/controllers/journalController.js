@@ -6,6 +6,7 @@
 const Journal = require('../models/Journal');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const User = require('../models/User'); // Add User model import
+const { updateUserStreak } = require('./userController'); // Add updateUserStreak import
 
 /**
  * Initialize Gemini AI model for journal analysis
@@ -110,6 +111,9 @@ const createJournal = async (req, res) => {
 
         await journal.save();
         
+        // After successfully creating a journal, update the user's streak
+        await updateUserStreak(userId);
+        
         // Send back the journal with analysis
         res.status(201).json({
             _id: journal._id,
@@ -169,7 +173,6 @@ const updateJournal = async (req, res) => {
         const { id } = req.params;
         const { content } = req.body;
         
-        // Check if journal belongs to user
         const journal = await Journal.findOne({
             _id: id,
             user: req.user.id
@@ -179,48 +182,43 @@ const updateJournal = async (req, res) => {
             return res.status(404).json({ error: 'Journal not found' });
         }
         
-        // Store original points if they exist
-        const originalPoints = journal.points ? { ...journal.points } : null;
+        const originalPoints = journal.points && Object.keys(journal.points).length > 0
+            ? { ...journal.points }
+            : null;
         
-        // Update content
         journal.content = content;
         
-        // Check if this is today's entry
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const journalDate = new Date(journal.date);
         journalDate.setHours(0, 0, 0, 0);
         
-        if (journalDate.getTime() === today.getTime() && originalPoints) {
-            // If this is today's entry and it had points, we need to reverse the points from user's total
-            const user = await User.findById(req.user.id);
-            
-            if (user && user.totalPoints) {
-                // Create a reversed version of the points to subtract them
-                const pointsToReverse = {};
+        if (journalDate.getTime() === today.getTime()) {
+            if (originalPoints) {
+                const user = await User.findById(req.user.id);
                 
-                for (const [category, value] of Object.entries(originalPoints)) {
-                    if (user.totalPoints[category] !== undefined) {
-                        // Subtract the old points
-                        user.totalPoints[category] -= value;
-                        pointsToReverse[category] = -value; // Store the reversed points for logging
+                if (user && user.totalPoints) {
+                    const pointsToReverse = {};
+                    
+                    for (const [category, value] of Object.entries(originalPoints)) {
+                        if (user.totalPoints[category] !== undefined) {
+                            user.totalPoints[category] -= value;
+                            pointsToReverse[category] = -value;
+                        }
                     }
+                    
+                    await user.save();
+                    console.log(`Points reversed for user ${user._id}:`, pointsToReverse);
                 }
-                
-                await user.save();
-                console.log(`Reversed previous points for user ${user._id}:`, pointsToReverse);
             }
             
-            // Reset the processing flag for today's entry
             journal.activitiesProcessed = false;
-            // Clear previous calculations
-            journal.activities = [];
-            journal.points = {};
         }
         
         await journal.save();
         res.json(journal);
     } catch (error) {
+        console.error('Error updating journal:', error);
         res.status(400).json({ error: error.message });
     }
 };

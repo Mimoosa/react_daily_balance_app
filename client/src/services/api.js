@@ -129,7 +129,44 @@ const userService = {
      * @throws {Error} If fetching fails
      */
     getTotalPoints: async () => {
-        const response = await fetch(`${API_URL}/users/points`, {
+        console.log("[DEBUG] api.js - Calling getTotalPoints");
+        try {
+            const response = await fetch(`${API_URL}/users/points`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("[ERROR] getTotalPoints failed:", errorData);
+                throw new Error(errorData.error || `Failed with status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Validate the data structure
+            if (!data.points) {
+                console.error("[ERROR] getTotalPoints: Invalid response format", data);
+                throw new Error("Invalid response format: 'points' field missing");
+            }
+            
+            console.log("[DEBUG] api.js - Points received:", data);
+            return data;
+        } catch (error) {
+            console.error("[ERROR] getTotalPoints exception:", error);
+            throw error;
+        }
+    },
+    
+    /**
+     * Gets detailed point information for debugging
+     * @returns {Promise<Object>} User's points data for debugging
+     * @throws {Error} If fetching fails
+     */
+    getPointsDebug: async () => {
+        console.log("[DEBUG] api.js - Calling getPointsDebug");
+        const response = await fetch(`${API_URL}/users/points-debug`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
@@ -170,7 +207,21 @@ const userService = {
         }
 
         return await response.json();
-    }
+    },
+
+    /**
+     * Gets user's current streak information
+     * @returns {Promise<Object>} User's streak data
+     * @throws {Error} If fetching fails
+     */
+    getStreak: async () => {
+        const response = await fetch(`${API_URL}/users/streak`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    },
 };
 
 const ActivityReportService = {
@@ -195,20 +246,27 @@ const ActivityReportService = {
         return handleResponse(response);
     },
 
-    savePoints: async (points, activities) => {
-        console.log("Saving points and activities:", points, activities);
-        const response = await fetch(`${API_URL}/activityRepo/points`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ 
-                points, 
-                activities 
-            }),
-        });
-        return handleResponse(response);
+    savePoints: async (points, activities, isRecalculation = false, previousPoints = null, pointsAlreadySubtracted = false) => {
+        try {
+            const response = await fetch(`${API_URL}/activityRepo/points`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ 
+                    points, 
+                    activities,
+                    isRecalculation,
+                    previousPoints,
+                    pointsAlreadySubtracted
+                }),
+            });
+            return handleResponse(response);
+        } catch (error) {
+            console.error("Error saving points:", error);
+            throw error;
+        }
     },
 
     getWeeklyPoints: async () => {
@@ -221,16 +279,13 @@ const ActivityReportService = {
     },
 
     resetProcessingFlag: async () => {
-        console.log("Resetting activity processing flag");
         const response = await fetch(`${API_URL}/activityRepo/reset-processing`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
         });
-        const data = await handleResponse(response);
-        console.log("Reset processing flag response:", data);
-        return data;
+        return handleResponse(response);
     },
 };
 

@@ -64,7 +64,7 @@ const JournalPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        
+
         if (!content.trim()) {
             setError('Please write something in your journal entry');
             return;
@@ -80,6 +80,7 @@ const JournalPage = () => {
             setError(error.message || 'Failed to save journal entry');
         } finally {
             setLoading(false);
+            navigate('/activity');
         }
     };
 
@@ -106,32 +107,73 @@ const JournalPage = () => {
      */
     const handleUpdate = async () => {
         if (!selectedEntry) return;
-        
+
         setLoading(true);
         try {
             // Add confirmation when updating today's entry with points
             const isToday = new Date(selectedEntry.date).toDateString() === new Date().toDateString();
-            
+
             if (isToday && selectedEntry.activitiesProcessed) {
                 const confirmUpdate = window.confirm(
                     "This journal entry already has activity points calculated. Updating will reset these points and require recalculation. Continue?"
                 );
-                
+
                 if (!confirmUpdate) {
                     setLoading(false);
                     return;
                 }
             }
-            
-            const data = await journalService.updateEntry(selectedEntry._id, content);
-            setAnalysis(data.analysis);
+
+            await journalService.updateEntry(selectedEntry._id, content);
+
+            // Check if this is today's entry to redirect properly
+            if (isToday) {
+                console.log("Today's journal updated - redirecting to activity page with edited=true");
+                navigate('/activity?edited=true');
+                return;
+            }
+
+            // For non-today entries
             await fetchJournals();
             setIsEditing(false);
-            setShowActivityPrompt(true);
+            setLoading(false);
         } catch (error) {
             setError(error.message || 'Failed to update entry');
-        } finally {
             setLoading(false);
+        }
+    };
+
+    /**
+     * Handles the submission of an edited journal entry
+     * @async
+     * @function
+     * @param {string} id - The ID of the journal entry to update
+     * @param {string} content - The updated content of the journal entry
+     */
+    const handleEditSubmit = async (id, content) => {
+        try {
+            await journalService.updateEntry(id, content);
+
+            // Check if the edited journal is today's entry
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const journalDate = new Date(selectedEntry.date);
+            journalDate.setHours(0, 0, 0, 0);
+
+            if (journalDate.getTime() === today.getTime()) {
+                console.log("Today's journal edited - redirecting to activity page with edited=true");
+
+                // Use navigate with proper params
+                navigate('/activity?edited=true');
+                return;
+            }
+
+            // For past journals, just refresh the list
+            fetchJournals();
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Error updating journal:", error);
+            setError("Failed to update journal entry");
         }
     };
 
@@ -152,7 +194,7 @@ const JournalPage = () => {
 
     return (
         <div className={`min-h-screen flex flex-col ${theme.backgroundWhite}`}>
-            
+
             {/* Main content area */}
             <div className="flex flex-col-reverse lg:flex-row flex-1">
                 {/* Journal entries section */}
@@ -162,7 +204,7 @@ const JournalPage = () => {
                         <div className={`border-b ${theme.divider || theme.border} p-4`}>
                             <h3 className={`font-bold text-lg ${theme.textViolet}`}>Journal Entries</h3>
                         </div>
-                        <JournalEntries 
+                        <JournalEntries
                             journals={journals}
                             selectedEntry={selectedEntry}
                             onEntrySelect={handleEntrySelect}
@@ -173,7 +215,7 @@ const JournalPage = () => {
                     <div className="lg:hidden mt-8">
                         <div className="p-4">
                             <h3 className={`font-bold text-lg ${theme.textViolet} mb-4`}>Previous Entries</h3>
-                            <JournalEntries 
+                            <JournalEntries
                                 journals={journals}
                                 selectedEntry={selectedEntry}
                                 onEntrySelect={handleEntrySelect}
@@ -185,24 +227,24 @@ const JournalPage = () => {
                 {/* Journal input and analysis section */}
                 <div className="flex-1 p-4 lg:p-6">
                     <JournalTips />
-                    
+
                     {error && (
                         <div className={`mb-4 p-3 ${theme.alert} bg-red-50 dark:bg-red-900/20 rounded-lg`}>
                             {error}
                         </div>
                     )}
-                    
+
                     {showActivityPrompt && (
                         <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg flex justify-between items-center">
                             <p>Journal entry updated successfully! Would you like to check your updated points in the activity report?</p>
                             <div className="flex gap-2">
-                                <button 
+                                <button
                                     onClick={goToActivityReport}
                                     className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white py-2 px-4 rounded-lg transition-colors"
                                 >
                                     View Activity Report
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setShowActivityPrompt(false)}
                                     className="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg transition-colors"
                                 >
@@ -211,13 +253,12 @@ const JournalPage = () => {
                             </div>
                         </div>
                     )}
-                    
+
                     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
                         <div className="relative">
                             <textarea
-                                className={`w-full h-48 p-3 border rounded-lg focus:outline-none ${
-                                    error ? 'border-red-500' : theme.border
-                                } ${theme.inputBackground || 'bg-white'} ${theme.textSecondary}`}
+                                className={`w-full h-48 p-3 border rounded-lg focus:outline-none ${error ? 'border-red-500' : theme.border
+                                    } ${theme.inputBackground || 'bg-white'} ${theme.textSecondary}`}
                                 placeholder="How was your day? Share your activities and experiences..."
                                 value={content}
                                 onChange={(e) => {
@@ -230,7 +271,7 @@ const JournalPage = () => {
                                 {content.length} characters (min. 10)
                             </div>
                         </div>
-                        
+
                         <div className="flex gap-2">
                             {isEditing ? (
                                 <>
@@ -266,21 +307,21 @@ const JournalPage = () => {
                             )}
                         </div>
                     </form>
-                    
+
                     {analysis && (
                         <div className={`mt-6 p-6 ${theme.backgroundCard} rounded-lg max-w-2xl mx-auto shadow-lg ${theme.cardShadow || ''}`}>
                             <h3 className={`font-bold text-xl mb-4 ${theme.textViolet}`}>Your Day Analysis</h3>
-                            
+
                             <div className="mb-4">
                                 <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Mood</h4>
                                 <p className={`text-lg ${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.mood}</p>
                             </div>
-                            
+
                             <div className="mb-4">
                                 <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Summary</h4>
                                 <p className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.summary}</p>
                             </div>
-                            
+
                             <div>
                                 <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Suggestions for Improving Your Well-being</h4>
                                 <ul className="space-y-2">
@@ -292,7 +333,7 @@ const JournalPage = () => {
                                     ))}
                                 </ul>
                             </div>
-                            
+
                             <div className={`mt-4 text-sm ${theme.textSecondary || theme.textViolet}`}>
                                 Analysis created: {new Date(analysis.timestamp).toLocaleString('en-US')}
                             </div>

@@ -4,8 +4,10 @@ const {
     registerUser, 
     loginUser, 
     getUserPoints, 
-    updateUserPoints, // This function is likely undefined
-    deleteUser
+    deleteUser,
+    getPointsDebug,
+    updateUserPoints,
+    getUserStreak  // Added getUserStreak function
 } = require('../controllers/userController');
 const { 
     createJournal, 
@@ -26,7 +28,12 @@ router.get('/journals', protect, getJournals);
 
 // User data routes
 router.get('/points', protect, getUserPoints);
-// This is the problematic line - updateUserPoints is likely undefined
-router.post('/update-points', protect, updateUserPoints); 
+router.post('/update-points', protect, updateUserPoints); // Fixed: use the correct function name
+
+// Debug route - only for development
+router.get('/points-debug', protect, getPointsDebug);
+
+// Streak route
+router.get('/streak', protect, getUserStreak);
 
 module.exports = router;

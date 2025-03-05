@@ -2,7 +2,7 @@ import BarCharts from '../components/BarCharts';
 import {useState, useEffect} from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faFire, faChartLine, faLightbulb} from '@fortawesome/free-solid-svg-icons';
+import {faFire, faChartLine, faLightbulb, faExclamationCircle, faTrophy} from '@fortawesome/free-solid-svg-icons';
 import { dashboardService, userService } from '../services/api';
 
 /**
@@ -12,10 +12,6 @@ import { dashboardService, userService } from '../services/api';
  * - Total wellbeing scores by category
  * - Personalized wellbeing recommendations
  * - Daily streak counter
- * 
- * OPTIMIZATION: This component now fetches only the user's total points
- * instead of weekly points, reducing unnecessary API calls and using
- * the total points for both display and recommendation generation.
  */
 const DashboardPage = () => {
   const { theme, isDark } = useTheme();
@@ -27,6 +23,11 @@ const DashboardPage = () => {
     Psychological: 0,
     Social: 0,
     Cognitive: 0
+  });
+  const [streak, setStreak] = useState({
+    currentStreak: 0,
+    bestStreak: 0,
+    lastEntryDate: null
   });
   
   // Define maximum possible points per category
@@ -41,6 +42,7 @@ const DashboardPage = () => {
         const data = await dashboardService.recommendation(scores);
         setRecommendation(data);
     } catch (error) {
+        console.error("Failed to fetch recommendation:", error);
         setError('Failed to fetch recommendation');
     } finally {
         setLoading(false); 
@@ -50,22 +52,57 @@ const DashboardPage = () => {
   useEffect(() => {
     /**
      * Fetches user data on component mount
-     * 
-     * OPTIMIZATION: Only fetches total points and uses them for recommendations,
-     * eliminating the need for a separate weekly points API call
      */
     const fetchData = async () => {
       try {
-          // Fetch total accumulated points
-          const totalPointsData = await userService.getTotalPoints();
+          setLoading(true);
+          console.log("[DEBUG] DashboardPage - Fetching user data");
+          
+          // Fetch total accumulated points and streak in parallel
+          const [totalPointsData, streakData] = await Promise.all([
+            userService.getTotalPoints(),
+            userService.getStreak()
+          ]);
+          
+          console.log("[DEBUG] DashboardPage - Data received:", {
+            points: totalPointsData,
+            streak: streakData
+          });
+          
           if (totalPointsData && totalPointsData.points) {
-              setTotalScores(totalPointsData.points);
+              console.log("[DEBUG] DashboardPage - Setting points:", totalPointsData.points);
+              
+              // Make sure we have all required categories with at least 0 values
+              const validPoints = {
+                Physical: totalPointsData.points.Physical || 0,
+                Psychological: totalPointsData.points.Psychological || 0,
+                Social: totalPointsData.points.Social || 0,
+                Cognitive: totalPointsData.points.Cognitive || 0,
+                ...totalPointsData.points // Add any additional categories
+              };
+              
+              setTotalScores(validPoints);
               // Use total points for recommendation
-              fetchRecommendation(totalPointsData.points);
+              fetchRecommendation(validPoints);
+          } else {
+              console.log("[DEBUG] DashboardPage - No points found in response or invalid structure");
+              setError("Could not retrieve user points");
+              setLoading(false);
           }
+          
+          // Update streak information
+          if (streakData) {
+            setStreak({
+              currentStreak: streakData.currentStreak || 0,
+              bestStreak: streakData.bestStreak || 0,
+              lastEntryDate: streakData.lastEntryDate
+            });
+          }
+          
+          setLoading(false);
       } catch (error) {
-          setError('Failed to fetch data');
-      } finally {
+          console.error("[ERROR] DashboardPage - Failed to fetch data:", error);
+          setError('Failed to fetch data: ' + error.message);
           setLoading(false);
       }
     };
@@ -73,7 +110,6 @@ const DashboardPage = () => {
     fetchData();
   }, []);
 
-  const dailyStreak = 5;
   const totalMax = Math.max(...Object.values(totalScores), 1); // Ensure non-zero for division
   
   return(
@@ -92,7 +128,28 @@ const DashboardPage = () => {
                 Total Wellbeing Scores
               </h2>
               <div className={`${theme.backgroundCard} pt-6 pb-4 px-6 rounded-xl shadow-lg ${theme.cardShadow} transition-all duration-300 hover:shadow-xl`}>
-                  <BarCharts data={totalScores} maxValue={totalMax} maxPossibleValue={MAX_POINTS_PER_CATEGORY} />
+                  {loading ? (
+                    <div className="flex justify-center items-center py-10">
+                      <div className="animate-pulse flex flex-col items-center">
+                        <div className={`h-10 w-10 rounded-full ${isDark ? 'bg-gray-700' : 'bg-violet-200'} mb-4`}></div>
+                        <div className={`h-4 w-3/4 rounded ${isDark ? 'bg-gray-700' : 'bg-violet-200'} mb-2`}></div>
+                        <div className={`h-4 w-1/2 rounded ${isDark ? 'bg-gray-700' : 'bg-violet-200'}`}></div>
+                      </div>
+                    </div>
+                  ) : error ? (
+                    <div className="flex flex-col items-center py-8">
+                      <FontAwesomeIcon icon={faExclamationCircle} className="text-red-500 text-3xl mb-3" />
+                      <p className={`${theme.alert} text-center`}>{error}</p>
+                      <button 
+                        onClick={() => window.location.reload()}
+                        className="mt-4 px-4 py-2 bg-violet-600 text-white rounded hover:bg-violet-700"
+                      >
+                        Reload Page
+                      </button>
+                    </div>
+                  ) : (
+                    <BarCharts data={totalScores} maxValue={totalMax} maxPossibleValue={MAX_POINTS_PER_CATEGORY} />
+                  )}
               </div>
           </div>
           
@@ -133,18 +190,24 @@ const DashboardPage = () => {
               )}
               </div>
               
-              <div className="mt-6 flex items-center bg-gradient-to-r from-amber-300 to-orange-500 p-4 rounded-xl shadow-md">
+              <div className="mt-6 w-1/2 flex items-center bg-gradient-to-r from-amber-300 to-orange-500 p-4 rounded-xl shadow-md">
                 <div className="bg-white/90 p-3 rounded-full mr-4">
                   <FontAwesomeIcon icon={faFire} className="text-orange-500 text-xl" beat />
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-white">Daily Streak</p>
-                  <p className="text-2xl font-bold text-white">{dailyStreak} days</p>
+                <div className="flex-1"></div>
+                  <p className="text-sm pr-2 font-medium text-white">Daily Streak</p>
+                  <p className="text-2xl font-bold text-white">{streak.currentStreak} days</p>
                 </div>
+                {streak.bestStreak > 0 && streak.bestStreak > streak.currentStreak && (
+                  <div className="flex flex-col items-center">
+                    <FontAwesomeIcon icon={faTrophy} className="text-yellow-300 text-lg" />
+                    <p className="text-xs text-white">Best: {streak.bestStreak}</p>
+                  </div>
+                )}
               </div>
           </div>
         </div>
-      </div>
+
   );
 };
 
