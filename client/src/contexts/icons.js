@@ -1,5 +1,4 @@
-
-import { faBars, faTimes, faDumbbell, faBrain, faUsers, faHeart, faFire } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faTimes, faDumbbell, faBrain, faUsers, faHeart, faFire, faSync, faExclamationTriangle, faClock } from '@fortawesome/free-solid-svg-icons';
 
 export {
   faBars, // icon for the hamburger menu
@@ -8,5 +7,8 @@ export {
   faBrain,  // icon for Cognitive section
   faUsers, // icon for Social section
   faHeart, //icon for psychological section
-  faFire // icon for daily streak
+  faFire, // icon for daily streak
+  faSync, // icon for loading spinner
+  faExclamationTriangle, // icon for error messages
+  faClock // icon for clock
 };

@@ -17,16 +17,29 @@ const journalSchema = new mongoose.Schema({
         suggestions: [String],
         timestamp: Date
     },
+    // Store points as a Mixed type to allow flexible structure
+    points: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    },
+    // Store activities as array of objects
+    activities: [{
+        text: String,
+        category: String,
+        points: Number
+    }],
+    activitiesProcessed: {
+        type: Boolean,
+        default: false
+    },
+    activitiesCalculatedAt: {
+        type: Date,
+        default: null
+    },
     date: {
         type: Date,
         default: Date.now,
         required: true
-    },
-    points: {
-        Physical: { type: Number, default: 0 },
-        Psychological: { type: Number, default: 0 },
-        Social: { type: Number, default: 0 },
-        Cognitive: { type: Number, default: 0 }
     }
 }, {
     timestamps: true
@@ -34,6 +47,21 @@ const journalSchema = new mongoose.Schema({
 
 // Ensure one entry per day per user
 journalSchema.index({ user: 1, date: 1 }, { unique: true });
+
+// Add a pre-save hook to ensure points and activities are properly handled
+journalSchema.pre('save', function(next) {
+    // If points is null or undefined, initialize it as empty object
+    if (!this.points) {
+        this.points = {};
+    }
+    
+    // If activities is null or undefined, initialize it as empty array
+    if (!this.activities) {
+        this.activities = [];
+    }
+    
+    next();
+});
 
 const Journal = mongoose.model('Journal', journalSchema);
 

@@ -5,6 +5,8 @@
 
 const Journal = require('../models/Journal');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const User = require('../models/User'); // Add User model import
+const { updateUserStreak } = require('./userController'); // Add updateUserStreak import
 
 /**
  * Initialize Gemini AI model for journal analysis
@@ -109,6 +111,9 @@ const createJournal = async (req, res) => {
 
         await journal.save();
         
+        // After successfully creating a journal, update the user's streak
+        await updateUserStreak(userId);
+        
         // Send back the journal with analysis
         res.status(201).json({
             _id: journal._id,
@@ -165,55 +170,55 @@ const getJournals = async (req, res) => {
  */
 const updateJournal = async (req, res) => {
     try {
+        const { id } = req.params;
         const { content } = req.body;
+        
         const journal = await Journal.findOne({
-            _id: req.params.id,
+            _id: id,
             user: req.user.id
         });
-
-        if (!journal) {
-            return res.status(404).json({ error: 'Journal entry not found' });
-        }
-
-        // Only allow updating today's entry
-        const today = new Date();
-        const entryDate = new Date(journal.date);
-        if (today.toDateString() !== entryDate.toDateString()) {
-            return res.status(400).json({ error: 'Only today\'s entry can be updated' });
-        }
-
-        // Get new AI analysis
-        const analysis = await analyzeJournalEntry(content);
         
-        /**
-         * FEATURE: Reset points when journal content is updated
-         * 
-         * When a user updates their journal entry, we need to reset the points
-         * so that they can be recalculated based on the new content.
-         * This ensures that the points accurately reflect the updated journal content.
-         * 
-         * The points will be recalculated when the user visits the activity report page.
-         * The activityReportController.saveActivityPoints function will handle
-         * subtracting old points and adding new points to the user's total.
-         */
-        if (journal.points && Object.keys(journal.points).length > 0) {
-            // Reset points to trigger a new calculation
-            journal.points = {};
-            // Also clear any activities that were previously calculated
-            journal.activities = undefined;
+        if (!journal) {
+            return res.status(404).json({ error: 'Journal not found' });
         }
+        
+        const originalPoints = journal.points && Object.keys(journal.points).length > 0
+            ? { ...journal.points }
+            : null;
         
         journal.content = content;
-        journal.analysis = {
-            ...analysis,
-            timestamp: new Date()
-        };
-
-        await journal.save();
         
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const journalDate = new Date(journal.date);
+        journalDate.setHours(0, 0, 0, 0);
+        
+        if (journalDate.getTime() === today.getTime()) {
+            if (originalPoints) {
+                const user = await User.findById(req.user.id);
+                
+                if (user && user.totalPoints) {
+                    const pointsToReverse = {};
+                    
+                    for (const [category, value] of Object.entries(originalPoints)) {
+                        if (user.totalPoints[category] !== undefined) {
+                            user.totalPoints[category] -= value;
+                            pointsToReverse[category] = -value;
+                        }
+                    }
+                    
+                    await user.save();
+                    console.log(`Points reversed for user ${user._id}:`, pointsToReverse);
+                }
+            }
+            
+            journal.activitiesProcessed = false;
+        }
+        
+        await journal.save();
         res.json(journal);
     } catch (error) {
-        console.error('Journal Update Error:', error);
+        console.error('Error updating journal:', error);
         res.status(400).json({ error: error.message });
     }
 };

@@ -129,16 +129,102 @@ const userService = {
      * @throws {Error} If fetching fails
      */
     getTotalPoints: async () => {
-        const response = await fetch(`${API_URL}/users/points`, {
+        console.log("[DEBUG] api.js - Calling getTotalPoints");
+        try {
+            const response = await fetch(`${API_URL}/users/points`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("[ERROR] getTotalPoints failed:", errorData);
+                throw new Error(errorData.error || `Failed with status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Validate the data structure
+            if (!data.points) {
+                console.error("[ERROR] getTotalPoints: Invalid response format", data);
+                throw new Error("Invalid response format: 'points' field missing");
+            }
+            
+            console.log("[DEBUG] api.js - Points received:", data);
+            return data;
+        } catch (error) {
+            console.error("[ERROR] getTotalPoints exception:", error);
+            throw error;
+        }
+    },
+    
+    /**
+     * Gets detailed point information for debugging
+     * @returns {Promise<Object>} User's points data for debugging
+     * @throws {Error} If fetching fails
+     */
+    getPointsDebug: async () => {
+        console.log("[DEBUG] api.js - Calling getPointsDebug");
+        const response = await fetch(`${API_URL}/users/points-debug`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
         return handleResponse(response);
-    }
+    },
+    
+    /**
+     * Updates user's total points with new values
+     * @param {Object} points - Points to add to user's total by category
+     * @returns {Promise<Object>} Updated user's total points
+     * @throws {Error} If update fails
+     */
+    updatePoints: async (points) => {
+        const response = await fetch(`${API_URL}/users/update-points`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ points })
+        });
+        return handleResponse(response);
+    },
+
+    deleteAccount: async () => {
+        const response = await fetch(`${API_URL}/users/profile`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.message || 'Failed to delete account');
+        }
+
+        return await response.json();
+    },
+
+    /**
+     * Gets user's current streak information
+     * @returns {Promise<Object>} User's streak data
+     * @throws {Error} If fetching fails
+     */
+    getStreak: async () => {
+        const response = await fetch(`${API_URL}/users/streak`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    },
 };
 
-const ActicityReportService = {
+const ActivityReportService = {
     getTodaysEntry: async () => {
         const response = await fetch(`${API_URL}/activityRepo/journal`, {
             headers: {
@@ -160,20 +246,41 @@ const ActicityReportService = {
         return handleResponse(response);
     },
 
-    savePoints: async (points) => {
-        const response = await fetch(`${API_URL}/activityRepo/points`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({ points }),
-        });
-        return handleResponse(response);
+    savePoints: async (points, activities, isRecalculation = false, previousPoints = null, pointsAlreadySubtracted = false) => {
+        try {
+            const response = await fetch(`${API_URL}/activityRepo/points`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ 
+                    points, 
+                    activities,
+                    isRecalculation,
+                    previousPoints,
+                    pointsAlreadySubtracted
+                }),
+            });
+            return handleResponse(response);
+        } catch (error) {
+            console.error("Error saving points:", error);
+            throw error;
+        }
     },
 
     getWeeklyPoints: async () => {
         const response = await fetch(`${API_URL}/activityRepo/weekly-points`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+        });
+        return handleResponse(response);
+    },
+
+    resetProcessingFlag: async () => {
+        const response = await fetch(`${API_URL}/activityRepo/reset-processing`, {
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
@@ -197,4 +304,4 @@ const handleResponse = async (response) => {
     return data;
 };
 
-export { authService, journalService, dashboardService, ActicityReportService, userService };
+export { authService, journalService, dashboardService, ActivityReportService, userService };

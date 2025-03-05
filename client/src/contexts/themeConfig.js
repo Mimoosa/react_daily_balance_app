@@ -1,11 +1,6 @@
 /*
 Change colors to match our design
 
-#66b343 - green bg
-#4c8b2f - hover green bg
-#ffffff - text
-#0d557e - blue
-#0b3c58 - hover blue
 --
 #B1A3FF - bar chart color 1
 #818DED - bar chart color 2

@@ -1,34 +1,65 @@
 const mongoose = require('mongoose');
-const bcryptjs = require('bcryptjs'); // Fix import name
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
-        required: [true, 'Username is required'],
+        required: [true, 'Please add a username'],
         unique: true,
         minlength: [6, 'Username must be at least 6 characters long'],
         trim: true
     },
-    password: {
+        password: {
         type: String,
-        required: [true, 'Password is required'],
+        required: [true, 'Please add a password'],
         minlength: [7, 'Password must be at least 7 characters long'],
         validate: {
             validator: function(v) {
                 return /^(?=.*[A-Z])(?=.*\d).{7,}$/.test(v);
             },
             message: 'Password must contain at least one uppercase letter and one number'
-        }
+        },
+        select: false
     },
     journals: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Journal'
     }],
     points: {
-        Physical: { type: Number, default: 0 },
-        Psychological: { type: Number, default: 0 },
-        Social: { type: Number, default: 0 },
-        Cognitive: { type: Number, default: 0 }
+        type: Object,
+        default: {
+            Physical: 100,
+            Psychological: 100,
+            Social: 100,
+            Cognitive: 100
+        }
+    },
+    totalPoints: {
+        type: Object,
+        default: {
+            Physical: 100,
+            Psychological: 100,
+            Social: 100,
+            Cognitive: 100
+        }
+    },
+    streak: {
+        count: {
+            type: Number,
+            default: 0
+        },
+        lastEntryDate: {
+            type: Date,
+            default: null
+        },
+        bestStreak: {
+            type: Number,
+            default: 0
+        }
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true
@@ -38,17 +69,16 @@ userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
     
     try {
-        const salt = await bcryptjs.genSalt(10); // Use bcryptjs
-        this.password = await bcryptjs.hash(this.password, salt);
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
         next();
     } catch (error) {
         next(error);
     }
 });
 
-// Change method name from comparePassword to matchPassword
 userSchema.methods.matchPassword = async function(candidatePassword) {
-    return await bcryptjs.compare(candidatePassword, this.password);
+    return await bcrypt.compare(candidatePassword, this.password);
 };
 
 const User = mongoose.model('User', userSchema);
