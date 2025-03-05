@@ -1,5 +1,7 @@
+// Check this value - it should match your backend server address
+// Change from http://localhost:3000/api to http://localhost:5000/api
 /** Base API URL from environment variables, defaults to localhost if not set */
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 /**
  * Authentication service for handling user login and registration
@@ -362,14 +364,8 @@ const friendsService = {
      * @returns {Promise<Object>} Result of rejection
      * @throws {Error} If rejection fails
      */
-    rejectRequest: async (requestId) => {
-        const response = await fetch(`${API_URL}/friends/request/${requestId}/reject`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-        return handleResponse(response);
+    rejectRequest: (requestId) => {
+        return apiClient.post(`/friends/request/${requestId}/reject`);
     },
 
     /**

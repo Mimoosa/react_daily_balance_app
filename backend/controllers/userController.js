@@ -77,10 +77,36 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         const { username, password } = req.body;
+        
+        // Validate that both username and password are provided
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+
         const user = await User.findOne({ username });
         
         if (!user) {
             return res.status(401).json({ error: 'Invalid username or password' });
+        }
+
+        // Special handling for users without password (migration issue)
+        if (!user.password) {
+            console.error(`User ${user._id} (${username}) has no password field - setting temporary password`);
+            
+            // Set a new temporary password for this user
+            user.password = password; // Will be hashed by pre-save hook in model
+            await user.save();
+            console.log(`Temporary password set for user ${username}`);
+            
+            // Return success response with token
+            return res.json({
+                data: {
+                    id: user._id,
+                    username: user.username,
+                    token: generateToken(user._id),
+                    passwordUpdated: true
+                }
+            });
         }
 
         const isMatch = await user.matchPassword(password);
@@ -98,7 +124,7 @@ const loginUser = async (req, res) => {
         }
     } catch (error) {
         console.error('Login error:', error);
-        res.status(400).json({ error: 'Login failed' });
+        res.status(400).json({ error: error.message || 'Login failed' });
     }
 };
 

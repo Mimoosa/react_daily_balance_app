@@ -18,7 +18,15 @@ const { protect } = require('../middleware/auth');
 
 // Auth routes
 router.post('/register', registerUser);
-router.post('/login', loginUser);
+
+// Add debug middleware for login route
+router.post('/login', (req, res, next) => {
+    console.log('Login attempt for username:', req.body.username);
+    // Log only presence of password, not the actual password for security
+    console.log('Password provided:', !!req.body.password);
+    next();
+}, loginUser);
+
 router.delete('/profile', protect, deleteUser);
 
 // Journal routes - protected by auth middleware

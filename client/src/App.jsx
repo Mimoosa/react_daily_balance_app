@@ -8,7 +8,7 @@ import JournalPage from './pages/JournalPage';
 import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage';
 import ActivityReportPage from './pages/ActivityReportPage';
-import FriendButton from './components/FriendButton';
+import FriendButton from './components/friends/FriendButton';
 import ProfilePage from './pages/ProfilePage';
 import DebugPointsPage from './pages/DebugPointsPage';
 

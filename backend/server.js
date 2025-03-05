@@ -18,6 +18,7 @@ const userRoutes = require('./routes/userRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const activityReportRoutes = require('./routes/activityReportRoutes');
 const devRoutes = require('./routes/devRoutes'); // Import the dev routes
+const friendsRoutes = require('./routes/friendsRoutes'); // Make sure friendsRoutes is imported at the top
 const errorHandler = require('./middleware/errorHandler');
 const connectDB = require('./config/db');
 
@@ -39,6 +40,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/activityRepo', activityReportRoutes);
 app.use('/api/dev', devRoutes); // Add the dev routes
+app.use('/api/friends', friendsRoutes); // Add this line where you register your routes
 
 // Error handling middleware (should be last)
 app.use(errorHandler);

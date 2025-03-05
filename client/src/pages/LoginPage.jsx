@@ -45,24 +45,45 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Validate form data before submission
+            if (!formData.username || !formData.password) {
+                setError('Username and password are required');
+                return;
+            }
+            
+            console.log(`Attempting to ${isLogin ? 'login' : 'register'} with username: ${formData.username}`);
+            
             const response = await (isLogin
                 ? authService.login(formData)
                 : authService.register(formData)
             );
 
-            if (response.data && response.data.token) {
+            console.log('Auth response:', response);
+
+            if (response && response.data && response.data.token) {
                 localStorage.setItem('token', response.data.token);
-                localStorage.setItem('username', response.data.username);
+                localStorage.setItem('username', response.data.username || response.data.id);
                 setSuccess(isLogin ? 'Login successful!' : 'Registration successful!');
 
                 setTimeout(() => {
                     navigate('/dashboard');
                 }, 1500);
             } else {
+                console.error('Invalid response format:', response);
                 throw new Error('Invalid response format from server');
             }
         } catch (err) {
-            setError(err.message || 'An error occurred during authentication');
+            console.error('Auth error:', err);
+            // Extract error message from various possible error formats
+            let errorMsg = 'Authentication failed';
+            
+            if (err.response && err.response.data) {
+                errorMsg = err.response.data.error || err.response.data.message || errorMsg;
+            } else if (err.message) {
+                errorMsg = err.message;
+            }
+            
+            setError(errorMsg);
         }
     };
 
