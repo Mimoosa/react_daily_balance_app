@@ -4,6 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faFire, faChartLine, faLightbulb, faExclamationCircle, faTrophy} from '@fortawesome/free-solid-svg-icons';
 import { dashboardService, userService } from '../services/api';
+import { useScreenContext } from '../contexts/ScreenContext'
 
 /**
  * Dashboard Page Component
@@ -18,6 +19,7 @@ const DashboardPage = () => {
   const [recommendation, setRecommendation] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const { isLargeScreen } = useScreenContext();
   const [totalScores, setTotalScores] = useState({
     Physical: 0,
     Psychological: 0,
@@ -113,9 +115,9 @@ const DashboardPage = () => {
   const totalMax = Math.max(...Object.values(totalScores), 1); // Ensure non-zero for division
   
   return(
-      <div className={`min-h-screen flex flex-col ${theme.backgroundWhite}`}>
+      <div className={` flex flex-col ${theme.backgroundWhite}`} style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}}>
         <div className={`py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6`}>
-          <h1 className={`text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
+          <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
             <FontAwesomeIcon icon={faChartLine} className={`${theme.textViolet}`} />
             Your Dashboard
           </h1>
@@ -189,14 +191,14 @@ const DashboardPage = () => {
                 </>
               )}
               </div>
-              
-              <div className="mt-6 w-1/2 flex items-center bg-gradient-to-r from-amber-300 to-orange-500 p-4 rounded-xl shadow-md">
+              <div className="flex justify-center items-center lg:justify-start mb-10 lg:mb-0">
+              <div className="mt-6 w-full lg:w-1/2  flex items-center bg-gradient-to-r from-amber-300 to-orange-500 p-4 rounded-xl shadow-md">
                 <div className="bg-white/90 p-3 rounded-full mr-4">
                   <FontAwesomeIcon icon={faFire} className="text-orange-500 text-xl" beat />
                 </div>
-                <div className="flex-1"></div>
+                <div className="lg:flex-1"></div>
                   <p className="text-sm pr-2 font-medium text-white">Daily Streak</p>
-                  <p className="text-2xl font-bold text-white">{streak.currentStreak} days</p>
+                  <p className="text-xl lg:text-2xl font-bold text-white">{streak.currentStreak} days</p>
                 </div>
                 {streak.bestStreak > 0 && streak.bestStreak > streak.currentStreak && (
                   <div className="flex flex-col items-center">
@@ -204,6 +206,7 @@ const DashboardPage = () => {
                     <p className="text-xs text-white">Best: {streak.bestStreak}</p>
                   </div>
                 )}
+              </div>
               </div>
           </div>
         </div>

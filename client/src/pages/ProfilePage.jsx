@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { userService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { useScreenContext } from '../contexts/ScreenContext'; 
 
 const ProfilePage = () => {
     const { theme } = useTheme();
     const [user, setUser] = useState(null);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const { isLargeScreen } = useScreenContext();
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -53,7 +55,7 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className={`min-h-screen ${theme.backgroundViolet} ${theme.primary}`}>
+        <div className={`${theme.backgroundViolet} ${theme.primary}`} style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}}>
             <div className="max-w-4xl mx-auto p-6">
                 <h1 className={`${theme.textWhite} text-3xl font-bold mb-8`}>Profile</h1>
                 

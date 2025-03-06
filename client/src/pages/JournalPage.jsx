@@ -5,7 +5,10 @@ import JournalEntries from '../components/journal/JournalEntries';
 import { useNavigate } from 'react-router-dom';
 import JournalTips from '../components/journal/JournalTips';
 import '@fortawesome/fontawesome-svg-core/styles.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBook } from '@fortawesome/free-solid-svg-icons';
 import { config } from '@fortawesome/fontawesome-svg-core';
+import { useScreenContext } from '../contexts/ScreenContext'
 config.autoAddCss = false;
 
 /**
@@ -21,7 +24,7 @@ config.autoAddCss = false;
  * @component
  */
 const JournalPage = () => {
-    const { theme } = useTheme();
+    const { theme, isDark } = useTheme();
     const [content, setContent] = useState('');
     const [analysis, setAnalysis] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -31,6 +34,7 @@ const JournalPage = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [showActivityPrompt, setShowActivityPrompt] = useState(false);
     const navigate = useNavigate();
+    const { isLargeScreen } = useScreenContext;
 
     /**
      * Fetches user's journal entries on component mount
@@ -193,7 +197,7 @@ const JournalPage = () => {
      */
 
     return (
-        <div className={`min-h-screen flex flex-col ${theme.backgroundWhite}`}>
+        <div className={`pb-14 flex flex-col ${theme.backgroundWhite}`}  style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}} >
 
             {/* Main content area */}
             <div className="flex flex-col-reverse lg:flex-row flex-1">
@@ -225,120 +229,128 @@ const JournalPage = () => {
                 </div>
 
                 {/* Journal input and analysis section */}
-                <div className="flex-1 p-4 lg:p-6">
-                    <JournalTips />
+                <div className="flex flex-col flex-1 w-full">
+                    <div className={`py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'}`}>
+                        <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
+                            <FontAwesomeIcon icon={faBook} className={`${theme.textViolet}`} />
+                            Daily Journal
+                        </h1>
+                    </div>
+                    <div className="flex-1 p-4 lg:p-6">
+                        <JournalTips />
 
-                    {error && (
-                        <div className={`mb-4 p-3 ${theme.alert} bg-red-50 dark:bg-red-900/20 rounded-lg`}>
-                            {error}
-                        </div>
-                    )}
+                        {error && (
+                            <div className={`mb-4 p-3 ${theme.alert} bg-red-50 dark:bg-red-900/20 rounded-lg`}>
+                                {error}
+                            </div>
+                        )}
 
-                    {showActivityPrompt && (
-                        <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg flex justify-between items-center">
-                            <p>Journal entry updated successfully! Would you like to check your updated points in the activity report?</p>
+                        {showActivityPrompt && (
+                            <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg flex justify-between items-center">
+                                <p>Journal entry updated successfully! Would you like to check your updated points in the activity report?</p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={goToActivityReport}
+                                        className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white py-2 px-4 rounded-lg transition-colors"
+                                    >
+                                        View Activity Report
+                                    </button>
+                                    <button
+                                        onClick={() => setShowActivityPrompt(false)}
+                                        className="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg transition-colors"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
+                            <div className="relative">
+                                <textarea
+                                    className={`w-full h-48 p-3 border rounded-lg focus:outline-none ${error ? 'border-red-500' : theme.border
+                                        } ${theme.inputBackground || 'bg-white'} ${theme.textSecondary}`}
+                                    placeholder="How was your day? Share your activities and experiences..."
+                                    value={content}
+                                    onChange={(e) => {
+                                        setContent(e.target.value);
+                                        setError('');
+                                    }}
+                                    minLength={10}
+                                />
+                                <div className={`absolute bottom-2 right-2 text-sm ${theme.textSecondary || 'text-gray-500'}`}>
+                                    {content.length} characters (min. 10)
+                                </div>
+                            </div>
+
                             <div className="flex gap-2">
-                                <button
-                                    onClick={goToActivityReport}
-                                    className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white py-2 px-4 rounded-lg transition-colors"
-                                >
-                                    View Activity Report
-                                </button>
-                                <button
-                                    onClick={() => setShowActivityPrompt(false)}
-                                    className="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg transition-colors"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
-                        <div className="relative">
-                            <textarea
-                                className={`w-full h-48 p-3 border rounded-lg focus:outline-none ${error ? 'border-red-500' : theme.border
-                                    } ${theme.inputBackground || 'bg-white'} ${theme.textSecondary}`}
-                                placeholder="How was your day? Share your activities and experiences..."
-                                value={content}
-                                onChange={(e) => {
-                                    setContent(e.target.value);
-                                    setError('');
-                                }}
-                                minLength={10}
-                            />
-                            <div className={`absolute bottom-2 right-2 text-sm ${theme.textSecondary || 'text-gray-500'}`}>
-                                {content.length} characters (min. 10)
-                            </div>
-                        </div>
-
-                        <div className="flex gap-2">
-                            {isEditing ? (
-                                <>
+                                {isEditing ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={handleUpdate}
+                                            disabled={loading}
+                                            className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg disabled:bg-gray-400 dark:disabled:bg-gray-700 transition-colors`}
+                                        >
+                                            {loading ? 'Updating...' : 'Update Entry'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsEditing(false);
+                                                setSelectedEntry(null);
+                                                setContent('');
+                                                setAnalysis(null);
+                                            }}
+                                            className="mt-4 bg-gray-500 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </>
+                                ) : (
                                     <button
-                                        type="button"
-                                        onClick={handleUpdate}
-                                        disabled={loading}
-                                        className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg disabled:bg-gray-400 dark:disabled:bg-gray-700 transition-colors`}
+                                        type="submit"
+                                        disabled={loading || content.length < 10}
+                                        className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg cursor-pointer transition-colors`}
                                     >
-                                        {loading ? 'Updating...' : 'Update Entry'}
+                                        {loading ? 'Analyzing...' : 'Analyze My Day'}
                                     </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsEditing(false);
-                                            setSelectedEntry(null);
-                                            setContent('');
-                                            setAnalysis(null);
-                                        }}
-                                        className="mt-4 bg-gray-500 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                </>
-                            ) : (
-                                <button
-                                    type="submit"
-                                    disabled={loading || content.length < 10}
-                                    className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg cursor-pointer transition-colors`}
-                                >
-                                    {loading ? 'Analyzing...' : 'Analyze My Day'}
-                                </button>
-                            )}
-                        </div>
-                    </form>
-
-                    {analysis && (
-                        <div className={`mt-6 p-6 ${theme.backgroundCard} rounded-lg max-w-2xl mx-auto shadow-lg ${theme.cardShadow || ''}`}>
-                            <h3 className={`font-bold text-xl mb-4 ${theme.textViolet}`}>Your Day Analysis</h3>
-
-                            <div className="mb-4">
-                                <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Mood</h4>
-                                <p className={`text-lg ${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.mood}</p>
+                                )}
                             </div>
+                        </form>
 
-                            <div className="mb-4">
-                                <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Summary</h4>
-                                <p className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.summary}</p>
-                            </div>
+                        {analysis && (
+                            <div className={`mt-6 p-6 ${theme.backgroundCard} rounded-lg max-w-2xl mx-auto shadow-lg ${theme.cardShadow || ''}`}>
+                                <h3 className={`font-bold text-xl mb-4 ${theme.textViolet}`}>Your Day Analysis</h3>
 
-                            <div>
-                                <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Suggestions for Improving Your Well-being</h4>
-                                <ul className="space-y-2">
-                                    {analysis.suggestions.map((suggestion, index) => (
-                                        <li key={index} className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm flex items-start`}>
-                                            <span className={`${theme.textViolet} mr-2`}>•</span>
-                                            {suggestion}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                                <div className="mb-4">
+                                    <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Mood</h4>
+                                    <p className={`text-lg ${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.mood}</p>
+                                </div>
 
-                            <div className={`mt-4 text-sm ${theme.textSecondary || theme.textViolet}`}>
-                                Analysis created: {new Date(analysis.timestamp).toLocaleString('en-US')}
+                                <div className="mb-4">
+                                    <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Summary</h4>
+                                    <p className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.summary}</p>
+                                </div>
+
+                                <div>
+                                    <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Suggestions for Improving Your Well-being</h4>
+                                    <ul className="space-y-2">
+                                        {analysis.suggestions.map((suggestion, index) => (
+                                            <li key={index} className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm flex items-start`}>
+                                                <span className={`${theme.textViolet} mr-2`}>•</span>
+                                                {suggestion}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className={`mt-4 text-sm ${theme.textSecondary || theme.textViolet}`}>
+                                    Analysis created: {new Date(analysis.timestamp).toLocaleString('en-US')}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

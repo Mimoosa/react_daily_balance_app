@@ -1,12 +1,20 @@
 import React, { useRef, useCallback } from "react";
-import { themes } from '../contexts/themeConfig';
+import { useTheme } from "../contexts/ThemeContext";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarDay } from '@fortawesome/free-solid-svg-icons';
 import { faDumbbell, faBrain, faUsers, faHeart, faExclamationTriangle, faSync, faClock } from '../contexts/icons';
 import { ActivityReportService, userService } from '../services/api';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useScreenContext } from '../contexts/ScreenContext'; 
 
+/**
+ * DailyActivityReport Component
+ * Displays the daily activity report including a summary and total points.
+ * 
+ * @component
+ */
 const DailyActivityReport = () => {
-  const theme = themes.light;
+  const { theme, isDark } = useTheme();
   const [journal, setJournal] = useState("");
   const [activities, setActivities] = useState([]);
   const [error, setError] = useState('');
@@ -16,7 +24,38 @@ const DailyActivityReport = () => {
   const [activitiesProcessed, setActivitiesProcessed] = useState(false);
   const [processingAttempts, setProcessingAttempts] = useState(0);
   const [calculationTime, setCalculationTime] = useState(null);
- 
+  const { isLargeScreen } = useScreenContext();
+
+  
+  /**
+   * Transforms activities into a structured format for rendering.
+   * 
+   * @param {Array} activities - Array of activity objects.
+   * @returns {Array} Transformed array of activities with categorized points.
+   */
+  const transformActivities = (activities) => {
+    const transformed = {};
+
+    activities.forEach((activity) => {
+      if (!transformed[activity.text]) {
+        transformed[activity.text] = { text: activity.text, categories: [] };
+      }
+      transformed[activity.text].categories.push({ category: activity.category, points: activity.points });
+    });
+    return Object.values(transformed);
+  };
+
+  const transformedActivities = useMemo(() => transformActivities(activities), [activities]);
+
+  const normalizePoints = (points) => {
+    Object.keys(points).forEach((key) => {
+      if (points[key] > 100) {
+        points[key] = 100;
+      }
+    });
+    return points;
+  };
+  
   const labelIcons = {
     Physical: faDumbbell,
     Psychological: faHeart,
@@ -24,6 +63,7 @@ const DailyActivityReport = () => {
     Cognitive: faBrain
   };
 
+  
   const handleRegenerateAction = async (showConfirm = true, manualPreviousPoints = null) => {
     if (showConfirm && !window.confirm('This will recalculate your points for today. Continue?')) {
         return;
@@ -275,10 +315,17 @@ const DailyActivityReport = () => {
     }
   };
 
+  
+
   return (
-    <div className="h-full">
-      <div className="flex flex-col items-center mt-6">
-        <h2 className="text-4xl font-bold">Daily Activity Report</h2>
+    <div className={`pb-10 ${theme.backgroundWhite}`} style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}} >
+      <div className="flex flex-col items-center">
+      <div className={`w-full py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6`}>
+            <h1 className={`text-2xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
+                <FontAwesomeIcon icon={faCalendarDay} className={`${theme.textViolet}`} />
+                Daily Activity Report
+            </h1>
+        </div>
         
         {/* Add calculation time info */}
         {calculationTime && activitiesProcessed && (
@@ -303,36 +350,42 @@ const DailyActivityReport = () => {
         
         <div className="mt-6 flex flex-col lg:flex-row gap-6">
           <div>
-          <h3 className="text-xl text-center font-semibold mb-3 lg:mt-2">Daily Summary</h3>
-          <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px', overflowY: 'auto' }}>
-            {loading ? (
-              <div className="flex flex-col items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500 mb-4"></div>
-                <p className="text-gray-500">Analyzing your activities...</p>
-              </div>
-            ) : activities.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500 mb-4"></div>
-                <p className="text-gray-500">Initializing analysis...</p>
-              </div>
-            ) : (
-              <ul>
-                {activities.map((activity, index) => (
-                  <li key={index} className="mb-2">
-                    <p className="text-black ">{activity.text}</p>
-                    <p className={`${activity.points >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      <FontAwesomeIcon icon={labelIcons[activity.category]} size="lg" className="text-black mr-2" />
-                      {activity.category}: {activity.points} points
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+            <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Daily Summary</h3>
+            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px', overflowY: 'auto' }}>
+              {loading ? (
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500 mb-4"></div>
+                  <p className="text-gray-500">Analyzing your activities...</p>
+                </div>
+              ) : activities.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500 mb-4"></div>
+                  <p className="text-gray-500">Initializing analysis...</p>
+                </div>
+              ) : (
+                <ul>
+                    {transformedActivities.map((activity, index) => (
+                      <li key={index} className="mb-2">
+                        <p className={theme.textSecondary}>{activity.text}</p>
+                        {activity.categories.map((category, catIndex) => (
+                          <p key={catIndex} className={category.points >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            <FontAwesomeIcon 
+                              icon={labelIcons[category.category]} 
+                              size="lg" 
+                              className={`${theme.textViolet} mr-2`} 
+                            />
+                            {category.category}: {category.points} points
+                          </p>
+                        ))}
+                      </li>
+                    ))}
+                  </ul>
+              )}
+            </div>
           </div>
           
           <div>
-          <h3 className="text-xl text-center font-semibold mb-3 lg:mt-2">Total Points</h3>
+          <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Total Points</h3>
           <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px'}}>
           {loading ? (
               <div className="flex flex-col items-center justify-center h-full">
@@ -347,7 +400,7 @@ const DailyActivityReport = () => {
                   {Object.entries(totalPoints).map(([category, points], index) => (
                     <li key={index} className="mb-2">
                       <p className={`${points >= 0 ? 'text-green-600' : 'text-red-600'}`}> 
-                        <FontAwesomeIcon icon={labelIcons[category]} size="lg" className="text-black mr-2"/>
+                        <FontAwesomeIcon icon={labelIcons[category]} size="lg" className={`${theme.textViolet} text-black mr-2`}/>
                         {category}: {points} points
                       </p>
                     </li>
