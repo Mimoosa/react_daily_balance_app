@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
 import { authService } from '../services/api';
-
+import bgImage from '../images/bg_image.jpg';
+import { useScreenContext } from '../contexts/ScreenContext'; 
 /**
  * LoginPage Component
  * Handles both user login and registration functionality
@@ -23,6 +24,7 @@ const LoginPage = () => {
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const { isLargeScreen, navbarHeight } = useScreenContext();
 
     /**
      * Handles form input changes and clears any existing errors
@@ -88,95 +90,97 @@ const LoginPage = () => {
     };
 
     return (
-        <div className={`h-full ${theme.backgroundWhite} flex items-center justify-center px-4`}>
-            <div className={`max-w-md w-full ${theme.backgroundWhite} p-8 rounded-lg shadow-lg`}>
-                <div className="flex justify-center space-x-4 mb-8">
-                    <button
-                        onClick={() => setIsLogin(true)}
-                        className={`px-4 py-2 rounded-t-lg ${isLogin ? `${theme.backgroundViolet} ${theme.textWhite}` : 'text-gray-600'
-                            }`}
-                    >
-                        Login
-                    </button>
-                    <button
-                        onClick={() => setIsLogin(false)}
-                        className={`px-4 py-2 rounded-t-lg ${!isLogin ? `${theme.backgroundViolet} ${theme.textWhite}` : 'text-gray-600'
-                            }`}
-                    >
-                        Register
-                    </button>
+        <div className="relative flex items-center justify-center px-4" style={isLargeScreen ? { height: `calc(100vh - 56px)`} : {height: `calc(100vh - ${navbarHeight}px )`}}>
+          <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${bgImage})`, filter: 'blur(4px)' }}></div>
+          <div className={`absolute inset-0 opacity-50`}></div>
+          <div className="relative z-10 flex items-center justify-center w-full">
+            <div className={`max-w-md w-full ${theme.backgroundCard} p-8 rounded-lg shadow-lg`}>
+              <div className="flex justify-center space-x-4 mb-8">
+                <button
+                  onClick={() => setIsLogin(true)}
+                  className={`px-4 py-2 rounded-t-lg ${isLogin ? `${theme.backgroundViolet} ${theme.textWhite}` : 'text-gray-600'}`}
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => setIsLogin(false)}
+                  className={`px-4 py-2 rounded-t-lg ${!isLogin ? `${theme.backgroundViolet} ${theme.textWhite}` : 'text-gray-600'}`}
+                >
+                  Register
+                </button>
+              </div>
+    
+              <h2 className={`text-3xl font-bold text-center mb-8 text-gray-800`}>
+                {isLogin ? 'Welcome Back' : 'Create Account'}
+              </h2>
+    
+              {success && (
+                <div className="text-center mb-4 p-2 rounded bg-green-50 text-green-700">
+                  {success}
                 </div>
-
-                <h2 className={`text-3xl font-bold text-center mb-8 text-gray-800`}>
-                    {isLogin ? 'Welcome Back' : 'Create Account'}
-                </h2>
-
-                {success && (
-                    <div className="text-center mb-4 p-2 rounded bg-green-50 text-green-700">
-                        {success}
-                    </div>
-                )}
-
-                {error && (
-                    <div className={`${theme.alert} text-center mb-4 p-2 rounded bg-red-50`}>
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label
-                            htmlFor="username"
-                            className="block text-gray-700 text-sm font-medium mb-2"
-                        >
-                            Username
-                        </label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
-                            required
-                            minLength={6}
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="password"
-                            className="block text-gray-700 text-sm font-medium mb-2"
-                        >
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
-                            required
-                            minLength={7}
-                        />
-                        {!isLogin && (
-                            <p className="text-xs text-gray-500 mt-1">
-                                Must be at least 7 characters with 1 uppercase letter and 1 number
-                            </p>
-                        )}
-                    </div>
-
-                    <button
-                        type="submit"
-                        className={`w-full py-2 px-4 ${theme.backgroundViolet} hover:bg-violet-900  ${theme.textWhite} rounded-md transition duration-200 font-medium`}
-                    >
-                        {isLogin ? 'Login' : 'Register'}
-                    </button>
-                </form>
+              )}
+    
+              {error && (
+                <div className={`${theme.alert} text-center mb-4 p-2 rounded bg-red-50`}>
+                  {error}
+                </div>
+              )}
+    
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label
+                    htmlFor="username"
+                    className="block text-gray-700 text-sm font-medium mb-2"
+                  >
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    required
+                    minLength={6}
+                  />
+                </div>
+    
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="block text-gray-700 text-sm font-medium mb-2"
+                  >
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    required
+                    minLength={7}
+                  />
+                  {!isLogin && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Must be at least 7 characters with 1 uppercase letter and 1 number
+                    </p>
+                  )}
+                </div>
+    
+                <button
+                  type="submit"
+                  className={`w-full py-2 px-4 ${theme.backgroundViolet} hover:bg-violet-900  ${theme.textWhite} rounded-md transition duration-200 font-medium`}
+                >
+                  {isLogin ? 'Login' : 'Register'}
+                </button>
+              </form>
             </div>
+          </div>
         </div>
-    );
+      );
 };
 
 export default LoginPage;

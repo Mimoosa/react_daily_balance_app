@@ -1,14 +1,14 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, {useRef, useState, useEffect} from 'react';
 import Navbar from './Navbar';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet} from 'react-router-dom';
+import { useMediaQuery } from 'react-responsive'
+import ScreenContext from '../contexts/ScreenContext' 
 
 const Layout = () => {
-  const navbarRef = useRef(null);
-  const outletRef = useRef(null);
-  const [navbarHeight, setNavbarHeight] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [outletHeightExceeds, setOutletHeightExceeds] = useState(false);
-  const location = useLocation();
+  const isLargeScreen = useMediaQuery({ query: '(min-width: 1024px)' });
+  const [navbarHeight, setNavbarHeight] = useState(0);
+  const navbarRef = useRef(null);
 
   const updateNavbarHeight = () => {
     if (navbarRef.current) {
@@ -16,39 +16,25 @@ const Layout = () => {
     }
   };
 
-  const updateOutletHeight = () => {
-    if (outletRef.current) {
-      const outletHeight = outletRef.current.scrollHeight; 
-      const totalHeight = outletHeight + navbarHeight;
-      setOutletHeightExceeds(totalHeight > window.innerHeight);
-    }
-  };
-
   useEffect(() => {
     updateNavbarHeight();
-    updateOutletHeight();
   }, [isOpen, location.pathname]);
 
   useEffect(() => {
     window.addEventListener('resize', updateNavbarHeight);
-    window.addEventListener('resize', updateOutletHeight);
     return () => {
       window.removeEventListener('resize', updateNavbarHeight);
-      window.removeEventListener('resize', updateOutletHeight);
     };
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div ref={navbarRef}>
-        <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
-      </div>
-      <div
-        ref={outletRef}
-        className="flex-1"
-      >
-        <Outlet />
-      </div>
+    <div className=" min-h-screen flex flex-col">
+        <div ref={navbarRef}>
+          <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
+        </div>
+        <ScreenContext.Provider value={{ isLargeScreen, navbarHeight }}>
+          <Outlet />
+        </ScreenContext.Provider>
     </div>
   );
 };

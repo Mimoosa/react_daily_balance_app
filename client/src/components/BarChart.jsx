@@ -29,7 +29,7 @@ function BarChart({ label, value, maxValue, maxPossibleValue = 1000 }) {
     const icon = labelIcons[label]; 
 
     return (
-        <div className="flex flex-col lg:flex-row items-center lg:items-start">
+        <div className="flex flex-col lg:flex-row items-start">
             <div className="lg:w-2/5 flex items-center mb-2 lg:mb-0">
                 <div className={`${isDark ? 'bg-gray-700' : 'bg-violet-100'} p-2 rounded-full mr-3 transition-all duration-200 hover:scale-110 hover:shadow-md`}>
                     <FontAwesomeIcon 
