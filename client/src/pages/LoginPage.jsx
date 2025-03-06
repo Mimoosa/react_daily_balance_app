@@ -68,7 +68,9 @@ const LoginPage = () => {
                 setSuccess(isLogin ? 'Login successful!' : 'Registration successful!');
 
                 setTimeout(() => {
-                    navigate('/dashboard');
+                  isLogin 
+                  ? navigate('/dashboard')
+                  :navigate('/instruction');
                 }, 1500);
             } else {
                 console.error('Invalid response format:', response);
