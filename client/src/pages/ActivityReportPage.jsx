@@ -44,17 +44,9 @@ const DailyActivityReport = () => {
     });
     return Object.values(transformed);
   };
-
+  // This useMemo hook is used to memoize the result of the transformActivities function,
+// ensuring that the transformed activities are only recalculated when the activities array changes.
   const transformedActivities = useMemo(() => transformActivities(activities), [activities]);
-
-  const normalizePoints = (points) => {
-    Object.keys(points).forEach((key) => {
-      if (points[key] > 100) {
-        points[key] = 100;
-      }
-    });
-    return points;
-  };
   
   const labelIcons = {
     Physical: faDumbbell,
