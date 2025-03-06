@@ -10,6 +10,7 @@ import DashboardPage from './pages/DashboardPage';
 import ActivityReportPage from './pages/ActivityReportPage';
 import FriendButton from './components/friends/FriendButton';
 import ProfilePage from './pages/ProfilePage';
+import InstructionPage from './pages/InstructionPage';
 import DebugPointsPage from './pages/DebugPointsPage';
 
 const AppContent = () => {
@@ -24,7 +25,7 @@ const AppContent = () => {
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
-
+            <Route path="/instruction" element={<InstructionPage />} />
             <Route path="/journal" element={<JournalPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/activity" element={<ActivityReportPage />} />
