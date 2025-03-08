@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+
 // Validate essential environment variables
 if (!process.env.MONGODB_URI) {
     console.error('Fatal Error: MONGODB_URI is not defined in .env file');
@@ -45,8 +46,10 @@ app.use('/api/friends', friendsRoutes); // Add this line where you register your
 // Error handling middleware (should be last)
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+module.exports = app;
+
+/* const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
+}); */
