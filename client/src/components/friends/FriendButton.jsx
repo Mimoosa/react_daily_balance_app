@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { IoAccessibilityOutline } from 'react-icons/io5';
 import { useFriendHandlers } from './friendHandlers';
 import FriendsTabs from './FriendsTabs';
-import { useTheme } from '../../contexts/ThemeContext'; // Import Theme Context
 
 export default function FriendButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,8 +13,6 @@ export default function FriendButton() {
   const [sentRequests, setSentRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const { isDark } = useTheme(); // Get dark mode state
 
   // Get handlers from the extracted file
   const {
@@ -63,9 +60,7 @@ export default function FriendButton() {
   return (
     <div className="fixed bottom-5 right-5 z-50">
       {isOpen && (
-        <div className={`rounded-lg shadow-lg p-4 mb-3 w-72 border transition-colors 
-          ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-3 w-72 border border-gray-200">
           <h3 className="text-lg font-semibold text-center mb-2">Friends</h3>
           
           {/* Using the extracted FriendsTabs component */}
@@ -92,8 +87,7 @@ export default function FriendButton() {
       {/* Toggle Button */}
       <button
         onClick={toggleFriendsList}
-        className={`relative w-14 h-14 rounded-full flex justify-center items-center shadow-lg transition-colors
-          ${isOpen ? 'bg-violet-600 text-white' : isDark ? 'bg-gray-800 text-white border-2 border-violet-600' : 'bg-white text-gray-800 border-2 border-violet-600'}`}
+        className={`w-14 h-14 rounded-full flex justify-center items-center shadow-lg ${isOpen ? 'bg-violet-600 text-white' : 'bg-white text-gray-800 border-2 border-violet-600'}`}
         aria-label="Toggle friends list"
       >
         <IoAccessibilityOutline size={24} />
