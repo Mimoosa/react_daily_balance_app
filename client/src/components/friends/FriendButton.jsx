@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { IoAccessibilityOutline } from 'react-icons/io5';
 import { useFriendHandlers } from './friendHandlers';
 import FriendsTabs from './FriendsTabs';
+import { useTheme } from '../../contexts/ThemeContext'; // Import theme context
 
 export default function FriendButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,6 +34,9 @@ export default function FriendButton() {
     setError
   );
 
+  // Get current theme (dark or light)
+  const { isDark } = useTheme();
+
   // Fetch friends data when component opens
   useEffect(() => {
     if (isOpen) {
@@ -58,10 +62,10 @@ export default function FriendButton() {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className={`fixed bottom-5 right-5 z-50 ${isDark ? 'dark' : ''}`}>
       {isOpen && (
-        <div className="bg-white rounded-lg shadow-lg p-4 mb-3 w-72 border border-gray-200">
-          <h3 className="text-lg font-semibold text-center mb-2">Friends</h3>
+        <div className={`rounded-lg shadow-lg p-4 mb-3 w-72 ${isDark ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'}`}>
+          <h3 className={`text-lg font-semibold text-center mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Friends</h3>
           
           {/* Using the extracted FriendsTabs component */}
           <FriendsTabs
@@ -87,7 +91,7 @@ export default function FriendButton() {
       {/* Toggle Button */}
       <button
         onClick={toggleFriendsList}
-        className={`w-14 h-14 rounded-full flex justify-center items-center shadow-lg ${isOpen ? 'bg-violet-600 text-white' : 'bg-white text-gray-800 border-2 border-violet-600'}`}
+        className={`w-14 h-14 rounded-full flex justify-center items-center shadow-lg ${isOpen ? 'bg-violet-600 text-white' : isDark ? 'bg-gray-800 text-white border-2 border-violet-600' : 'bg-white text-gray-800 border-2 border-violet-600'}`}
         aria-label="Toggle friends list"
       >
         <IoAccessibilityOutline size={24} />

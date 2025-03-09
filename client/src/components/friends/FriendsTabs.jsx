@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   IoPersonCircleOutline, 
   IoSearchOutline,
@@ -8,6 +8,7 @@ import {
   IoArrowUndoOutline,
   IoTrashOutline
 } from 'react-icons/io5';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function FriendsTabs({
   activeTab,
@@ -26,6 +27,9 @@ export default function FriendsTabs({
   handleCancelRequest,
   handleRemoveFriend
 }) {
+  // Use theme context to get isDark value
+  const { isDark } = useTheme();
+
   // Render profile image or fallback icon
   const renderProfileImage = (imageUrl) => {
     if (imageUrl) {
@@ -37,15 +41,15 @@ export default function FriendsTabs({
 
   // Handle tab navigation
   const renderTabs = () => (
-    <div className="flex border-b">
+    <div className={`flex border-b ${isDark ? 'border-gray-700' : 'border-gray-300'}`}>
       <button 
-        className={`flex-1 py-2 text-sm font-medium ${activeTab === 'friends' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500'}`}
+        className={`flex-1 py-2 text-sm font-medium ${activeTab === 'friends' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500 dark:text-gray-400'}`}
         onClick={() => setActiveTab('friends')}
       >
         Friends
       </button>
       <button 
-        className={`flex-1 py-2 text-sm font-medium ${activeTab === 'incoming' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500'}`}
+        className={`flex-1 py-2 text-sm font-medium ${activeTab === 'incoming' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500 dark:text-gray-400'}`}
         onClick={() => setActiveTab('incoming')}
       >
         Incoming
@@ -56,13 +60,13 @@ export default function FriendsTabs({
         )}
       </button>
       <button 
-        className={`flex-1 py-2 text-sm font-medium ${activeTab === 'sent' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500'}`}
+        className={`flex-1 py-2 text-sm font-medium ${activeTab === 'sent' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500 dark:text-gray-400'}`}
         onClick={() => setActiveTab('sent')}
       >
         Sent
       </button>
       <button 
-        className={`flex-1 py-2 text-sm font-medium ${activeTab === 'search' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500'}`}
+        className={`flex-1 py-2 text-sm font-medium ${activeTab === 'search' ? 'text-violet-600 border-b-2 border-violet-600' : 'text-gray-500 dark:text-gray-400'}`}
         onClick={() => setActiveTab('search')}
       >
         <IoSearchOutline size={18} className="mx-auto" />
@@ -76,7 +80,7 @@ export default function FriendsTabs({
       <>
         {renderTabs()}
         <div className="flex justify-center items-center h-48">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 dark:border-gray-100"></div>
         </div>
       </>
     );
@@ -100,37 +104,34 @@ export default function FriendsTabs({
         return (
           <>
             <div className="mb-3 relative">
-              <IoSearchOutline className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+              <IoSearchOutline className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
                 placeholder="Search users..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
               />
             </div>
             {searchQuery.length < 2 ? (
-              <p className="text-center text-gray-500 p-4">Type at least 2 characters to search</p>
+              <p className="text-center text-gray-500 dark:text-gray-400 p-4">Type at least 2 characters to search</p>
             ) : loading ? (
               <div className="flex justify-center items-center h-16">
-                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-gray-900"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-gray-900 dark:border-gray-100"></div>
               </div>
             ) : searchResults.length === 0 ? (
-              <p className="text-center text-gray-500 p-4">No users found</p>
+              <p className="text-center text-gray-500 dark:text-gray-400 p-4">No users found</p>
             ) : (
               <div className="max-h-64 overflow-y-auto">
                 {searchResults.map((user) => {
-                  // For debugging
-                  console.log('User data in search results:', user);
-                  
                   // Get the display name using fallbacks
                   const displayName = user.username || user.name || user.email || 'Unknown User';
                   
                   return (
-                    <div key={user._id} className="flex items-center justify-between p-2 border-b">
+                    <div key={user._id} className="flex items-center justify-between p-2 border-b dark:border-gray-600">
                       <div className="flex items-center">
                         {renderProfileImage(user.image)}
-                        <span>{displayName}</span>
+                        <span className="text-gray-800 dark:text-white">{displayName}</span>
                       </div>
                       <div>
                         {user.status === 'accepted' ? (
@@ -170,53 +171,53 @@ export default function FriendsTabs({
             )}
           </>
         );
-      
-      case 'friends':
-        return friends.length === 0 ? (
-          <div className="text-center p-6">
-            <IoPersonCircleOutline size={40} className="mx-auto text-gray-400 mb-3" />
-            <p className="text-gray-600 mb-2">You don't have any friends yet</p>
-            <p className="text-gray-500 text-sm mb-3">
-              Connect with other users to see their activity and share your progress
-            </p>
-            <button
-              onClick={() => setActiveTab('search')}
-              className="bg-violet-100 hover:bg-violet-200 text-violet-700 px-3 py-2 rounded-md text-sm flex items-center mx-auto"
-            >
-              <IoSearchOutline className="mr-2" />
-              Find Friends
-            </button>
-          </div>
-        ) : (
-          <div className="max-h-64 overflow-y-auto">
-            {friends.map((friend) => (
-              <div key={friend._id} className="flex items-center justify-between p-2 border-b">
-                <div className="flex items-center">
-                  {renderProfileImage(friend.image)}
-                  <span>{friend.username}</span>
+
+        case 'friends':
+          return friends.length === 0 ? (
+            <div className="text-center p-6">
+              <IoPersonCircleOutline size={40} className="mx-auto text-gray-400 mb-3" />
+              <p className="text-gray-600 dark:text-gray-300 mb-2">You don't have any friends yet</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
+                Connect with other users to see their activity and share your progress
+              </p>
+              <button
+                onClick={() => setActiveTab('search')}
+                className="bg-violet-100 hover:bg-violet-200 text-violet-700 px-3 py-2 rounded-md text-sm flex items-center mx-auto"
+              >
+                <IoSearchOutline className="mr-2" />
+                Find Friends
+              </button>
+            </div>
+          ) : (
+            <div className="max-h-64 overflow-y-auto">
+              {friends.map((friend) => (
+                <div key={friend._id} className="flex items-center justify-between p-2 border-b dark:border-gray-600">
+                  <div className="flex items-center">
+                    {renderProfileImage(friend.image)}
+                    <span className={`text-gray-800 ${isDark ? 'dark:text-white' : ''}`}>{friend.username}</span>
+                  </div>
+                  <button 
+                    onClick={() => handleRemoveFriend(friend._id)}
+                    className="text-gray-500 hover:text-red-500"
+                    title="Remove friend"
+                  >
+                    <IoTrashOutline size={18} />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => handleRemoveFriend(friend._id)}
-                  className="text-gray-500 hover:text-red-500"
-                  title="Remove friend"
-                >
-                  <IoTrashOutline size={18} />
-                </button>
-              </div>
-            ))}
-          </div>
-        );
-      
+              ))}
+            </div>
+          );
+
       case 'incoming':
         return incomingRequests.length === 0 ? (
-          <div className="text-center text-gray-500 p-4">
+          <div className="text-center text-gray-500 dark:text-gray-400 p-4">
             <p className="mb-2">No incoming friend requests</p>
             <p className="text-sm">When someone sends you a request, you'll see it here</p>
           </div>
         ) : (
           <div className="max-h-64 overflow-y-auto">
             {incomingRequests.map((request) => (
-              <div key={request._id} className="flex items-center justify-between p-2 border-b">
+              <div key={request._id} className="flex items-center justify-between p-2 border-b dark:border-gray-600">
                 <div className="flex items-center">
                   {renderProfileImage(request.user.image)}
                   <span>
@@ -225,20 +226,14 @@ export default function FriendsTabs({
                 </div>
                 <div className="flex">
                   <button 
-                    onClick={() => {
-                      console.log('Accepting request with ID:', request._id);
-                      handleAcceptRequest(request._id);
-                    }}
+                    onClick={() => handleAcceptRequest(request._id)}
                     className="bg-green-100 text-green-700 p-1 rounded-full mr-1"
                     title="Accept request"
                   >
                     <IoCheckmarkCircleOutline size={20} />
                   </button>
                   <button 
-                    onClick={() => {
-                      console.log('Rejecting request with ID:', request._id);
-                      handleRejectRequest(request._id);
-                    }}
+                    onClick={() => handleRejectRequest(request._id)}
                     className="bg-red-100 text-red-700 p-1 rounded-full"
                     title="Reject request"
                   >
@@ -249,17 +244,17 @@ export default function FriendsTabs({
             ))}
           </div>
         );
-      
+
       case 'sent':
         return sentRequests.length === 0 ? (
-          <div className="text-center text-gray-500 p-4">
+          <div className="text-center text-gray-500 dark:text-gray-400 p-4">
             <p className="mb-2">No sent friend requests</p>
             <p className="text-sm">Try searching for friends to connect with</p>
           </div>
         ) : (
           <div className="max-h-64 overflow-y-auto">
             {sentRequests.map((request) => (
-              <div key={request._id} className="flex items-center justify-between p-2 border-b">
+              <div key={request._id} className="flex items-center justify-between p-2 border-b dark:border-gray-600">
                 <div className="flex items-center">
                   {renderProfileImage(request.user.image)}
                   <span>
@@ -284,7 +279,7 @@ export default function FriendsTabs({
   };
 
   return (
-    <div>
+    <div className={`${isDark ? 'dark' : ''}`}>
       {renderTabs()}
       <div className="mt-4">
         {renderTabContent()}
