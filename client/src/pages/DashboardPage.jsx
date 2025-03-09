@@ -35,6 +35,9 @@ const DashboardPage = () => {
   // Define maximum possible points per category
   const MAX_POINTS_PER_CATEGORY = 1000;
 
+  // Animation states
+  const [cardsVisible, setCardsVisible] = useState(false);
+
   /**
    * Fetches personalized recommendations based on user's scores
    * @param {Object} scores - User's scores by category
@@ -110,26 +113,34 @@ const DashboardPage = () => {
     };
 
     fetchData();
+
+    // Trigger card animations with slight delay after component mounts
+    setTimeout(() => {
+      setCardsVisible(true);
+    }, 300);
   }, []);
 
   const totalMax = Math.max(...Object.values(totalScores), 1); // Ensure non-zero for division
   
   return(
-      <div className={` flex flex-col ${theme.backgroundWhite}`} style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}}>
-        <div className={`py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6`}>
+      <div className={`flex flex-col ${theme.backgroundWhite}`} style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}}>
+        <div className={`py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6
+                       transition-all duration-700 animate-fadeDown`}>
           <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
-            <FontAwesomeIcon icon={faChartLine} className={`${theme.textViolet}`} />
+            <FontAwesomeIcon icon={faChartLine} className={`${theme.textViolet} animate-pulse`} />
             Your Dashboard
           </h1>
         </div>
       
         <div className="flex flex-col items-center lg:items-stretch lg:flex-row lg:justify-center gap-6 px-4">
-          <div className="w-full lg:w-2/5 max-w-xl">
+          <div className={`w-full lg:w-2/5 max-w-xl transition-all duration-500 transform
+                         ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               <h2 className={`text-center text-xl font-semibold ${theme.textViolet} mb-4 flex items-center justify-center gap-2`}>
                 <FontAwesomeIcon icon={faChartLine} className={`${theme.textViolet}`} />
                 Total Wellbeing Scores
               </h2>
-              <div className={`${theme.backgroundCard} pt-6 pb-4 px-6 rounded-xl shadow-lg ${theme.cardShadow} transition-all duration-300 hover:shadow-xl`}>
+              <div className={`${theme.backgroundCard} pt-6 pb-4 px-6 rounded-xl shadow-lg ${theme.cardShadow} 
+                             transition-all duration-500 hover:shadow-xl`}>
                   {loading ? (
                     <div className="flex justify-center items-center py-10">
                       <div className="animate-pulse flex flex-col items-center">
@@ -155,13 +166,16 @@ const DashboardPage = () => {
               </div>
           </div>
           
-          <div className="w-full lg:w-2/5 max-w-xl">
+          <div className={`w-full lg:w-2/5 max-w-xl transition-all duration-500 transform
+                         ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                style={{ transitionDelay: '200ms' }}>
               <h2 className={`text-center text-xl font-semibold ${theme.textViolet} mb-4 flex items-center justify-center gap-2`}>
                 <FontAwesomeIcon icon={faLightbulb} className={`${theme.textViolet}`} />
                 Wellbeing Recommendations
               </h2>
               <div 
-                className={`${theme.backgroundCard} p-6 rounded-xl shadow-lg ${theme.cardShadow} transition-all duration-300 hover:shadow-xl`} 
+                className={`${theme.backgroundCard} p-6 rounded-xl shadow-lg ${theme.cardShadow}
+                          transition-all duration-500 hover:shadow-xl`} 
                 style={{ minHeight: '225px', maxHeight: '275px', overflowY: 'auto' }}
               >
               {loading ? ( 
@@ -191,17 +205,19 @@ const DashboardPage = () => {
                 </>
               )}
               </div>
-              <div className="flex justify-center items-center lg:justify-start mb-10 lg:mb-0">
-              <div className="mt-6 w-full lg:w-1/2  flex items-center bg-gradient-to-r from-amber-300 to-orange-500 p-4 rounded-xl shadow-md">
+              <div className={`flex justify-center items-center lg:justify-start mb-10 lg:mb-0 
+                              transform transition-all duration-700 ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                   style={{ transitionDelay: '400ms' }}>
+              <div className="mt-6 w-full lg:w-1/2 flex items-center bg-gradient-to-r from-amber-300 to-orange-500 p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105">
                 <div className="bg-white/90 p-3 rounded-full mr-4">
-                  <FontAwesomeIcon icon={faFire} className="text-orange-500 text-xl" beat />
+                  <FontAwesomeIcon icon={faFire} className="text-orange-500 text-xl animate-flame" />
                 </div>
-                <div className="lg:flex-1"></div>
+                <div>
                   <p className="text-sm pr-2 font-medium text-white">Daily Streak</p>
-                  <p className="text-xl lg:text-2xl font-bold text-white">{streak.currentStreak} days</p>
+                  <p className="text-xl lg:text-2xl font-bold text-white animate-number">{streak.currentStreak} days</p>
                 </div>
                 {streak.bestStreak > 0 && streak.bestStreak > streak.currentStreak && (
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center animate-bounce-soft">
                     <FontAwesomeIcon icon={faTrophy} className="text-yellow-300 text-lg" />
                     <p className="text-xs text-white">Best: {streak.bestStreak}</p>
                   </div>
@@ -210,7 +226,44 @@ const DashboardPage = () => {
               </div>
           </div>
         </div>
-
+        
+        {/* Add the keyframes for new animations */}
+        <style jsx>{`
+          @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fadeDown {
+            animation: fadeDown 0.8s ease-out forwards;
+          }
+          
+          @keyframes flame {
+            0% { transform: scale(0.9); opacity: 0.9; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.9; }
+          }
+          .animate-flame {
+            animation: flame 1.5s infinite;
+          }
+          
+          @keyframes number {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+          }
+          .animate-number {
+            animation: number 2s ease-in-out 1;
+          }
+          
+          @keyframes bounce-soft {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+          }
+          .animate-bounce-soft {
+            animation: bounce-soft 2s infinite;
+          }
+        `}</style>
+      </div>
   );
 };
 

@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBook } from '@fortawesome/free-solid-svg-icons';
 import { config } from '@fortawesome/fontawesome-svg-core';
 import { useScreenContext } from '../contexts/ScreenContext'
+import { ActivityPrompt } from '../components/journal/ActivityPrompt';
 config.autoAddCss = false;
 
 /**
@@ -33,6 +34,7 @@ const JournalPage = () => {
     const [selectedEntry, setSelectedEntry] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [showActivityPrompt, setShowActivityPrompt] = useState(false);
+    const [promptType, setPromptType] = useState(''); // 'new' or 'edit'
     const navigate = useNavigate();
     const { isLargeScreen } = useScreenContext;
 
@@ -80,11 +82,12 @@ const JournalPage = () => {
             setAnalysis(data.analysis);
             setContent('');
             await fetchJournals(); // Refresh the list
+            setShowActivityPrompt(true);
+            setPromptType('new');
         } catch (error) {
             setError(error.message || 'Failed to save journal entry');
         } finally {
             setLoading(false);
-            navigate('/activity');
         }
     };
 
@@ -132,17 +135,15 @@ const JournalPage = () => {
 
             // Check if this is today's entry to redirect properly
             if (isToday) {
-                console.log("Today's journal updated - redirecting to activity page with edited=true");
-                navigate('/activity?edited=true');
-                return;
+                setShowActivityPrompt(true);
+                setPromptType('edit');
+            } else {
+                await fetchJournals();
+                setIsEditing(false);
             }
-
-            // For non-today entries
-            await fetchJournals();
-            setIsEditing(false);
-            setLoading(false);
         } catch (error) {
             setError(error.message || 'Failed to update entry');
+        } finally {
             setLoading(false);
         }
     };
@@ -185,7 +186,7 @@ const JournalPage = () => {
      * Navigates to the activity report page
      * @function
      */
-    const goToActivityReport = () => {
+    const analysisCompleted = () => {
         navigate('/activity');
     };
 
@@ -195,6 +196,12 @@ const JournalPage = () => {
      * @param {Date|string} date - The date to check
      * @returns {boolean} True if the date is today, false otherwise
      */
+
+    const handleGoToActivity = () => {
+        const params = promptType === 'edit' ? '?edited=true' : '';
+        navigate(`/activity${params}`);
+        setShowActivityPrompt(false);
+    };
 
     return (
         <div className={`pb-14 flex flex-col ${theme.backgroundWhite}`}  style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}} >
@@ -242,26 +249,6 @@ const JournalPage = () => {
                         {error && (
                             <div className={`mb-4 p-3 ${theme.alert} bg-red-50 dark:bg-red-900/20 rounded-lg`}>
                                 {error}
-                            </div>
-                        )}
-
-                        {showActivityPrompt && (
-                            <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg flex justify-between items-center">
-                                <p>Journal entry updated successfully! Would you like to check your updated points in the activity report?</p>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={goToActivityReport}
-                                        className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white py-2 px-4 rounded-lg transition-colors"
-                                    >
-                                        View Activity Report
-                                    </button>
-                                    <button
-                                        onClick={() => setShowActivityPrompt(false)}
-                                        className="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg transition-colors"
-                                    >
-                                        Close
-                                    </button>
-                                </div>
                             </div>
                         )}
 
@@ -353,6 +340,12 @@ const JournalPage = () => {
                     </div>
                 </div>
             </div>
+
+            <ActivityPrompt 
+                isOpen={showActivityPrompt}
+                onClose={() => setShowActivityPrompt(false)}
+                type={promptType}
+            />
         </div>
     );
 };

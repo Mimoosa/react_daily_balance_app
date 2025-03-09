@@ -430,14 +430,107 @@ const getUserStreak = async (req, res) => {
     }
 };
 
+const getUserInfo = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json({
+            id: user._id,
+            username: user.username,
+            created: user.createdAt,
+            points: user.points,
+            streak: user.streak
+        });
+    } catch (error) {
+        console.error('[ERROR] getUserInfo:', error);
+        res.status(400).json({ error: error.message });
+    }
+}
+
+const updateUserInfo = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { username, currentPassword, newPassword } = req.body;
+        
+        // Find user and include password field
+        const user = await User.findById(userId).select('+password');
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        let updates = {};
+        let isPasswordChange = false;
+
+        // Handle username update
+        if (username && username !== user.username) {
+            // Check if username is already taken
+            const existingUser = await User.findOne({ username });
+            if (existingUser) {
+                return res.status(400).json({ error: 'Username is already taken' });
+            }
+            updates.username = username;
+        }
+
+        // Handle password update
+        if (newPassword) {
+            // Verify current password before allowing change
+            if (!currentPassword) {
+                return res.status(400).json({ error: 'Current password is required to change password' });
+            }
+
+            const isMatch = await user.matchPassword(currentPassword);
+            if (!isMatch) {
+                return res.status(400).json({ error: 'Current password is incorrect' });
+            }
+
+            // Validate new password
+            if (!/^(?=.*[A-Z])(?=.*\d).{7,}$/.test(newPassword)) {
+                return res.status(400).json({ 
+                    error: 'New password must be at least 7 characters with 1 uppercase letter and 1 number' 
+                });
+            }
+
+            updates.password = newPassword;
+            isPasswordChange = true;
+        }
+
+        // If no updates were requested
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ error: 'No updates provided' });
+        }
+
+        // Apply updates
+        Object.assign(user, updates);
+        await user.save();
+
+        res.json({ 
+            message: 'Profile updated successfully',
+            updates: {
+                username: updates.username ? true : false,
+                password: isPasswordChange
+            }
+        });
+    }
+    catch (error) {
+        console.error('[ERROR] updateUserInfo:', error);
+        res.status(400).json({ error: error.message });
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
     getUserPoints,
-    updateUserPoints, // Add this export
+    updateUserPoints,
     deleteUser,
     getPointsDebug,
     updateJournalEntry,
     getUserStreak,
-    updateUserStreak  // Export for potential use elsewhere
+    updateUserStreak,
+    getUserInfo,
+    updateUserInfo
 };
