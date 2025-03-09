@@ -224,6 +224,31 @@ const userService = {
         });
         return handleResponse(response);
     },
+
+    getUserData: async () => {
+        const response = await fetch(`${API_URL}/users/profile`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
+    },
+
+    updateProfile: async (profileData) => {
+        const response = await fetch(`${API_URL}/users/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+                username: profileData.username,
+                currentPassword: profileData.currentPassword || undefined,
+                newPassword: profileData.newPassword || undefined
+            })
+        });
+        return handleResponse(response);
+    },
 };
 
 const ActivityReportService = {

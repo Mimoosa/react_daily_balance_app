@@ -7,7 +7,9 @@ const {
     deleteUser,
     getPointsDebug,
     updateUserPoints,
-    getUserStreak  // Added getUserStreak function
+    getUserStreak,
+    getUserInfo,
+    updateUserInfo
 } = require('../controllers/userController');
 const { 
     createJournal, 
@@ -27,6 +29,8 @@ router.post('/login', (req, res, next) => {
     next();
 }, loginUser);
 
+router.get('/profile', protect, getUserInfo);
+router.put('/profile', protect, updateUserInfo);  // Changed from updateUserPoints to updateUserInfo
 router.delete('/profile', protect, deleteUser);
 
 // Journal routes - protected by auth middleware
