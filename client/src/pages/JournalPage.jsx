@@ -209,7 +209,8 @@ const JournalPage = () => {
     };
 
     return (
-        <div className={`flex flex-col ${theme.backgroundWhite}`} >
+        <div className={`flex flex-col ${theme.backgroundWhite}`} 
+        style={isExtraLargeScreen && !analysis? { height: `calc(100vh - 64px)` } : {}}>
             <div className={`w-full py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6
                            transition-all duration-700 animate-fadeDown`}>
                 <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>

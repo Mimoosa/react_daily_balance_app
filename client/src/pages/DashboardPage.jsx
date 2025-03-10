@@ -124,7 +124,7 @@ const DashboardPage = () => {
   const totalMax = Math.max(...Object.values(totalScores), 1); // Ensure non-zero for division
   
   return(
-      <div className={`flex min-h-screen flex-col ${theme.backgroundWhite}`}>
+      <div className={`flex flex-col ${theme.backgroundWhite}`} style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}}>
         <div className={`py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6
                        transition-all duration-700 animate-fadeDown`}>
           <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
