@@ -22,6 +22,7 @@ const devRoutes = require('./routes/devRoutes'); // Import the dev routes
 const friendsRoutes = require('./routes/friendsRoutes'); // Make sure friendsRoutes is imported at the top
 const errorHandler = require('./middleware/errorHandler');
 const connectDB = require('./config/db');
+const path = require('path');
 
 const app = express();
 
@@ -33,15 +34,28 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev')); // Log requests to console in development mode
 
+// API Routes
+app.use('/api/users', userRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/activityRepo', activityReportRoutes);
+app.use('/api/dev', devRoutes);
+app.use('/api/friends', friendsRoutes);
+
+// Serve static files from the React app in production
+if (process.env.NODE_ENV === 'production') {
+  // Set static folder
+  app.use(express.static(path.join(__dirname, '../client/dist')));
+
+  // Any routes not caught by API will be redirected to index.html
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../client/dist', 'index.html'));
+  });
+}
+
 // Basic route for testing
 app.get('/api/test', (req, res) => {
     res.json({ message: 'API is working!' });
 });
-app.use('/api/users', userRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/activityRepo', activityReportRoutes);
-app.use('/api/dev', devRoutes); // Add the dev routes
-app.use('/api/friends', friendsRoutes); // Add this line where you register your routes
 
 // Error handling middleware (should be last)
 app.use(errorHandler);
