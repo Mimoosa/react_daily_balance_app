@@ -85,6 +85,12 @@ export const useFriendHandlers = (
     try {
       setLoading(true);
       await friendsService.acceptRequest(requestId);
+      // Update search results to reflect the accepted status
+      setSearchResults(prevResults => 
+        prevResults.map(user => 
+          user._id === requestId ? {...user, status: 'accepted'} : user
+        )
+      );
       await fetchFriends();
       await fetchRequests();
       setError(null);

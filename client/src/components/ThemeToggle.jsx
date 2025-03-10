@@ -10,7 +10,7 @@ const ThemeToggle = () => {
     <button 
       onClick={toggleTheme}
       className={`p-2 rounded-full transition-colors duration-200 ${theme.backgroundActive} ${theme.backgroundHover}`}
-      aria-label={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
+      aria-label={`Switch to ${isDark ? 'Light' : 'Dark'} Mode  `}
       title={`Switch to ${isDark ? 'Light' : 'Dark'} Mode`}
     >
       <FontAwesomeIcon 

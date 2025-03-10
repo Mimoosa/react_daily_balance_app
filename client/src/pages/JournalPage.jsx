@@ -37,6 +37,7 @@ const JournalPage = () => {
     const [promptType, setPromptType] = useState(''); // 'new' or 'edit'
     const navigate = useNavigate();
     const { isExtraLargeScreen } = useScreenContext();
+    const [cardsVisible, setCardsVisible] = useState(false);
 
     /**
      * Fetches user's journal entries on component mount
@@ -45,6 +46,10 @@ const JournalPage = () => {
      */
     useEffect(() => {
         fetchJournals();
+        // Trigger card animations with slight delay after component mounts
+        setTimeout(() => {
+            setCardsVisible(true);
+        }, 300);
     }, []);
 
     /**
@@ -205,9 +210,17 @@ const JournalPage = () => {
 
     return (
         <div className={`flex flex-col ${theme.backgroundWhite}`} >
+            <div className={`w-full py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6
+                           transition-all duration-700 animate-fadeDown`}>
+                <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
+                    <FontAwesomeIcon icon={faBook} className={`${theme.textViolet}`} />
+                    Daily Journal
+                </h1>
+            </div>
 
             {/* Main content area */}
-            <div className="flex flex-col-reverse lg:flex-row flex-1">
+            <div className={`flex flex-col-reverse lg:flex-row flex-1 transition-all duration-500 transform
+                           ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                 {/* Journal entries section */}
                 <div className={`lg:w-64 border-t lg:border-t-0 lg:border-r ${theme.divider || theme.border}`}>
                     {/* Desktop view - side panel */}
@@ -237,12 +250,6 @@ const JournalPage = () => {
 
                 {/* Journal input and analysis section */}
                 <div className="flex flex-col flex-1 w-full">
-                    <div className={`py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'}`}>
-                        <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
-                            <FontAwesomeIcon icon={faBook} className={`${theme.textViolet}`} />
-                            Daily Journal
-                        </h1>
-                    </div>
                     <div className="flex-1 p-4 lg:p-6">
                         <JournalTips />
 
@@ -346,6 +353,17 @@ const JournalPage = () => {
                 onClose={() => setShowActivityPrompt(false)}
                 type={promptType}
             />
+
+            {/* Add the keyframes for animations */}
+            <style jsx>{`
+                @keyframes fadeDown {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fadeDown {
+                    animation: fadeDown 0.8s ease-out forwards;
+                }
+            `}</style>
         </div>
     );
 };

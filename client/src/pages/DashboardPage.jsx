@@ -2,7 +2,7 @@ import BarCharts from '../components/BarCharts';
 import {useState, useEffect} from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faFire, faChartLine, faLightbulb, faExclamationCircle, faTrophy, faCalendarWeek, faRefresh} from '@fortawesome/free-solid-svg-icons';
+import {faFire, faChartLine, faLightbulb, faExclamationCircle, faTrophy} from '@fortawesome/free-solid-svg-icons';
 import { dashboardService, userService } from '../services/api';
 import { useScreenContext } from '../contexts/ScreenContext'
 
@@ -13,7 +13,6 @@ import { useScreenContext } from '../contexts/ScreenContext'
  * - Total wellbeing scores by category
  * - Personalized wellbeing recommendations
  * - Daily streak counter
- * - Weekly points tracking
  */
 const DashboardPage = () => {
   const { theme, isDark } = useTheme();
@@ -27,16 +26,6 @@ const DashboardPage = () => {
     Social: 0,
     Cognitive: 0
   });
-  const [weeklyScores, setWeeklyScores] = useState({
-    Physical: 100,
-    Psychological: 100,
-    Social: 100,
-    Cognitive: 100
-  });
-  const [weekInfo, setWeekInfo] = useState({
-    weekStartDate: null,
-    weekEndDate: null
-  });
   const [streak, setStreak] = useState({
     currentStreak: 0,
     bestStreak: 0,
@@ -45,7 +34,6 @@ const DashboardPage = () => {
   
   // Define maximum possible points per category
   const MAX_POINTS_PER_CATEGORY = 1000;
-  const MAX_WEEKLY_POINTS = 200; // Maximum weekly points to display in chart
 
   // Animation states
   const [cardsVisible, setCardsVisible] = useState(false);
@@ -75,16 +63,14 @@ const DashboardPage = () => {
           setLoading(true);
           console.log("[DEBUG] DashboardPage - Fetching user data");
           
-          // Fetch total accumulated points, weekly points, and streak in parallel
-          const [totalPointsData, weeklyPointsData, streakData] = await Promise.all([
+          // Fetch total accumulated points and streak in parallel
+          const [totalPointsData, streakData] = await Promise.all([
             userService.getTotalPoints(),
-            dashboardService.getWeeklyPoints(),
             userService.getStreak()
           ]);
           
           console.log("[DEBUG] DashboardPage - Data received:", {
             points: totalPointsData,
-            weeklyPoints: weeklyPointsData,
             streak: streakData
           });
           
@@ -108,29 +94,6 @@ const DashboardPage = () => {
               console.log("[DEBUG] DashboardPage - No points found in response or invalid structure");
               setError("Could not retrieve user points");
               setLoading(false);
-          }
-          
-          // Process weekly points
-          if (weeklyPointsData && weeklyPointsData.weeklyPoints) {
-              console.log("[DEBUG] DashboardPage - Setting weekly points:", weeklyPointsData.weeklyPoints);
-              
-              // Make sure we have all required categories with at least 0 values
-              const validWeeklyPoints = {
-                Physical: weeklyPointsData.weeklyPoints.Physical || 100,
-                Psychological: weeklyPointsData.weeklyPoints.Psychological || 100,
-                Social: weeklyPointsData.weeklyPoints.Social || 100,
-                Cognitive: weeklyPointsData.weeklyPoints.Cognitive || 100
-              };
-              
-              setWeeklyScores(validWeeklyPoints);
-              
-              // Set week info
-              if (weeklyPointsData.weekStartDate && weeklyPointsData.weekEndDate) {
-                setWeekInfo({
-                  weekStartDate: new Date(weeklyPointsData.weekStartDate),
-                  weekEndDate: new Date(weeklyPointsData.weekEndDate)
-                });
-              }
           }
           
           // Update streak information
@@ -159,16 +122,9 @@ const DashboardPage = () => {
   }, []);
 
   const totalMax = Math.max(...Object.values(totalScores), 1); // Ensure non-zero for division
-  const weeklyMax = Math.max(...Object.values(weeklyScores), 1); // Ensure non-zero for division
-  
-  // Format dates for display
-  const formatDate = (date) => {
-    if (!date) return '';
-    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
   
   return(
-      <div className={`flex flex-col ${theme.backgroundWhite}`} style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}}>
+      <div className={`flex min-h-screen flex-col ${theme.backgroundWhite}`}>
         <div className={`py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6
                        transition-all duration-700 animate-fadeDown`}>
           <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
@@ -208,46 +164,6 @@ const DashboardPage = () => {
                   ) : (
                     <BarCharts data={totalScores} maxValue={totalMax} maxPossibleValue={MAX_POINTS_PER_CATEGORY} />
                   )}
-              </div>
-              
-              {/* Weekly Points Card */}
-              <div className="mt-6">
-                <h2 className={`text-center text-xl font-semibold ${theme.textViolet} mb-4 flex items-center justify-center gap-2`}>
-                  <FontAwesomeIcon icon={faCalendarWeek} className={`${theme.textViolet}`} />
-                  Weekly Points
-                  {weekInfo.weekStartDate && (
-                    <span className={`text-sm ${theme.textSecondary}`}>
-                      ({formatDate(weekInfo.weekStartDate)} - {formatDate(weekInfo.weekEndDate)})
-                    </span>
-                  )}
-                </h2>
-                <div className={`${theme.backgroundCard} pt-6 pb-4 px-6 rounded-xl shadow-lg ${theme.cardShadow} 
-                               transition-all duration-500 hover:shadow-xl`}>
-                    {loading ? (
-                      <div className="flex justify-center items-center py-10">
-                        <div className="animate-pulse flex flex-col items-center">
-                          <div className={`h-10 w-10 rounded-full ${isDark ? 'bg-gray-700' : 'bg-violet-200'} mb-4`}></div>
-                          <div className={`h-4 w-3/4 rounded ${isDark ? 'bg-gray-700' : 'bg-violet-200'} mb-2`}></div>
-                          <div className={`h-4 w-1/2 rounded ${isDark ? 'bg-gray-700' : 'bg-violet-200'}`}></div>
-                        </div>
-                      </div>
-                    ) : error ? (
-                      <div className="flex flex-col items-center py-8">
-                        <FontAwesomeIcon icon={faExclamationCircle} className="text-red-500 text-3xl mb-3" />
-                        <p className={`${theme.alert} text-center`}>{error}</p>
-                      </div>
-                    ) : (
-                      <>
-                        <BarCharts data={weeklyScores} maxValue={weeklyMax} maxPossibleValue={MAX_WEEKLY_POINTS} />
-                        <div className="mt-2 text-center">
-                          <p className={`text-xs ${theme.textSecondary} italic flex items-center justify-center gap-1`}>
-                            <FontAwesomeIcon icon={faRefresh} className="text-xs" />
-                            Points reset to 100 every Sunday
-                          </p>
-                        </div>
-                      </>
-                    )}
-                </div>
               </div>
           </div>
           
@@ -313,7 +229,7 @@ const DashboardPage = () => {
         </div>
         
         {/* Add the keyframes for new animations */}
-        <style jsx>{`
+        <style>{`
           @keyframes fadeDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
