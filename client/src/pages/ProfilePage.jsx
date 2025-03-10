@@ -18,7 +18,7 @@ const ProfilePage = () => {
         confirmPassword: ''
     });
     const navigate = useNavigate();
-    const { isLargeScreen } = useScreenContext();
+    const { isExtraLargeScreen } = useScreenContext();
 
     useEffect(() => {
         fetchUserData();
@@ -75,10 +75,10 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className={`${theme.backgroundViolet} ${theme.primary}`} 
-            style={isLargeScreen ? { height: `calc(100vh - 64px)` } : {}}>
+        <div className={`pb-20 ${theme.backgroundWhite} ${theme.primary}`} 
+            style={isExtraLargeScreen && !isEditing ? { height: `calc(100vh - 64px)` } : {}}>
             <div className="max-w-4xl mx-auto p-6">
-                <h1 className={`${theme.textWhite} text-3xl font-bold mb-8`}>
+                <h1 className={`${theme.textViolet} text-3xl font-bold mb-8`}>
                     <FontAwesomeIcon icon={faUser} className="mr-3" />
                     Profile
                 </h1>
@@ -103,8 +103,8 @@ const ProfilePage = () => {
 
                     {isEditing ? (
                         <form onSubmit={handleEditSubmit} className="space-y-4">
-                            <div>
-                                <label className={`block mb-2 ${theme.textSecondary}`}>
+                            <div className={`${theme.textViolet}`}>
+                                <label className={`block mb-2 ${theme.textViolet}`}>
                                     <FontAwesomeIcon icon={faUser} className="mr-2" />
                                     Username
                                 </label>
@@ -117,14 +117,14 @@ const ProfilePage = () => {
                                     required
                                 />
                             </div>
-                            <div className="pt-4 border-t">
+                            <div className={`pt-4 border-t ${theme.textViolet}`}>
                                 <h4 className={`font-medium mb-4 ${theme.textViolet} flex items-center`}>
                                     <FontAwesomeIcon icon={faKey} className="mr-2" />
                                     Change Password
                                 </h4>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className={`block mb-2 ${theme.textSecondary}`}>Current Password</label>
+                                        <label className={`block mb-2 ${theme.textViolet}`}>Current Password</label>
                                         <input
                                             type="password"
                                             value={editForm.currentPassword}
@@ -133,7 +133,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className={`block mb-2 ${theme.textSecondary}`}>New Password</label>
+                                        <label className={`block mb-2 ${theme.textViolet}`}>New Password</label>
                                         <input
                                             type="password"
                                             value={editForm.newPassword}
@@ -143,7 +143,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className={`block mb-2 ${theme.textSecondary}`}>Confirm New Password</label>
+                                        <label className={`block mb-2 ${theme.textViolet}`}>Confirm New Password</label>
                                         <input
                                             type="password"
                                             value={editForm.confirmPassword}
@@ -165,16 +165,16 @@ const ProfilePage = () => {
                             </div>
                         </form>
                     ) : (
-                        <div className="space-y-4">
+                        <div className={`space-y-4 ${theme.textViolet}`}>
                             <div>
-                                <label className={`block mb-2 ${theme.textSecondary} flex items-center`}>
+                                <label className={`block mb-2 ${theme.textViolet} flex items-center`}>
                                     <FontAwesomeIcon icon={faUser} className="mr-2" />
                                     Username
                                 </label>
                                 <p className={`${theme.textPrimary} font-medium`}>{userData.username}</p>
                             </div>
                             <div>
-                                <label className={`block mb-2 ${theme.textSecondary} flex items-center`}>
+                                <label className={`block mb-2 ${theme.textViolet} flex items-center`}>
                                     <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
                                     Account Created
                                 </label>
@@ -183,7 +183,7 @@ const ProfilePage = () => {
                                 </p>
                             </div>
                             <div>
-                                <label className={`block mb-2 ${theme.textSecondary} flex items-center`}>
+                                <label className={`block mb-2 ${theme.textViolet} flex items-center`}>
                                     <FontAwesomeIcon icon={faTrophy} className="mr-2" />
                                     Best Streak
                                 </label>
@@ -206,7 +206,7 @@ const ProfilePage = () => {
                             <FontAwesomeIcon icon={faTrash} className="mr-2" />
                             Permanently Delete Account
                         </button>
-                        <p className={`mt-2 text-sm ${theme.textSecondary}`}>
+                        <p className={`mt-2 text-sm ${theme.textViolet}`}>
                             This action cannot be undone. All your data will be permanently deleted.
                         </p>
                     </div>
