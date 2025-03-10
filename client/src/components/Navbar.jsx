@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes } from '../contexts/icons';
-import { faCalendarDay, faBook, faChartSimple, faUser, faBug, faChevronDown, faUserCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDay, faBook, faChartSimple, faUser, faChalkboardTeacher, faChevronDown, faUserCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
@@ -40,6 +40,9 @@ const Navbar = ({ isOpen, setIsOpen }) => {
         <div className={`${isOpen ? 'block' : 'hidden'} ml-auto mr-4 lg:block`}>
           {isAuthenticated && (
             <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-4">
+              <Link to="/instruction" className={`${theme.textWhite} hover:${theme.textViolet} mt-2 lg:mt-0`}>
+                <FontAwesomeIcon icon={faChalkboardTeacher} className="mr-1" /> Instruction
+              </Link>
               <Link to="/journal" className={`${theme.textWhite} hover:${theme.textViolet} mt-2 lg:mt-0`}>
                 <FontAwesomeIcon icon={faBook} className="mr-1" /> Journal
               </Link>
@@ -69,7 +72,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                   >
                     <Link
                       to="/profile"
-                      className={`block px-4 py-2 text-sm ${theme.textPrimary} hover:${theme.backgroundViolet} hover:${theme.textWhite}`}
+                      className={`block px-4 py-2 text-sm ${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite}`}
                       onClick={() => setIsProfileMenuOpen(false)}
                     >
                       <FontAwesomeIcon icon={faUserCog} className="mr-2" />
@@ -80,7 +83,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                         handleLogout();
                         setIsProfileMenuOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-2 text-sm ${theme.textPrimary} hover:${theme.backgroundViolet} hover:${theme.textWhite}`}
+                      className={`w-full text-left px-4 py-2 text-sm ${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite}`}
                     >
                       <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
                       Logout

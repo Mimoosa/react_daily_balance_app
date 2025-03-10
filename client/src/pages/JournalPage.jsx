@@ -36,7 +36,7 @@ const JournalPage = () => {
     const [showActivityPrompt, setShowActivityPrompt] = useState(false);
     const [promptType, setPromptType] = useState(''); // 'new' or 'edit'
     const navigate = useNavigate();
-    const { isLargeScreen } = useScreenContext();
+    const { isExtraLargeScreen } = useScreenContext();
 
     /**
      * Fetches user's journal entries on component mount
@@ -204,7 +204,9 @@ const JournalPage = () => {
     };
 
     return (
-        <div className={`flex flex-col ${theme.backgroundWhite}`}  style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}} >
+        <div className={`flex flex-col ${theme.backgroundWhite}`}
+        style={isExtraLargeScreen && !analysis? { height: `calc(100vh - 64px)` } : {}}
+        >
 
             {/* Main content area */}
             <div className="flex flex-col-reverse lg:flex-row flex-1">
