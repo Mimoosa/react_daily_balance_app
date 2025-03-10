@@ -27,7 +27,6 @@ export const themes = {
         barChart2: 'bg-[#818DED]',
         barChart3: 'bg-[#6D65CC]',
         barChart4: 'bg-[#494393]',
-        // Adding new variables to light mode without changing existing colors
         textSecondary: 'text-gray-600', // Secondary text color
         backgroundHover: 'hover:bg-violet-900', // Hover state
         inputBackground: 'bg-white', // Form input background
@@ -48,8 +47,7 @@ export const themes = {
         barChart2: 'bg-[#9AA3FF]',
         barChart3: 'bg-[#8680E6]',
         barChart4: 'bg-[#6A64CC]',
-        // Additional dark mode specific variables
-        textSecondary: 'text-gray-400', // Secondary text color
+        textSecondary: 'text-violet-400', // Secondary text color
         backgroundHover: 'hover:bg-violet-800', // Hover state
         inputBackground: 'bg-gray-700', // Form input background
         cardShadow: 'shadow-violet-900/20', // Custom shadow with violet tint

@@ -277,7 +277,29 @@ const removeFriend = async (req, res) => {
     const userId = req.user.id;
     const { friendId } = req.params;
 
-    // Find and delete friend relationship
+    // Find both users
+    const user = await User.findById(userId);
+    const friend = await User.findById(friendId);
+
+    if (!user || !friend) {
+      return res.status(404).json({ error: "User or friend not found" });
+    }
+
+    // Check if they are friends in the User model
+    const areFriendsInUserModel = user.friends.includes(friendId) && friend.friends.includes(userId);
+
+    // Remove from User model's friends arrays
+    if (areFriendsInUserModel) {
+      // Remove friend from user's friends array
+      user.friends = user.friends.filter(id => id.toString() !== friendId);
+      await user.save();
+
+      // Remove user from friend's friends array
+      friend.friends = friend.friends.filter(id => id.toString() !== userId);
+      await friend.save();
+    }
+
+    // Also try to find and delete friend relationship in Friends collection for backward compatibility
     const result = await Friends.findOneAndDelete({
       $or: [
         { requester: userId, recipient: friendId, status: 'accepted' },
@@ -285,7 +307,8 @@ const removeFriend = async (req, res) => {
       ]
     });
 
-    if (!result) {
+    // If not found in either model, return error
+    if (!result && !areFriendsInUserModel) {
       return res.status(404).json({ error: "Friend relationship not found" });
     }
 

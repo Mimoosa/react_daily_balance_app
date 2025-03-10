@@ -171,14 +171,14 @@ const ProfilePage = () => {
                                     <FontAwesomeIcon icon={faUser} className="mr-2" />
                                     Username
                                 </label>
-                                <p className={`${theme.textPrimary} font-medium`}>{userData.username}</p>
+                                <p className={`${theme.textSecondary} font-medium`}>{userData.username}</p>
                             </div>
                             <div>
                                 <label className={`block mb-2 ${theme.textSecondary} flex items-center`}>
                                     <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
                                     Account Created
                                 </label>
-                                <p className={`${theme.textPrimary} font-medium`}>
+                                <p className={`${theme.textSecondary} font-medium`}>
                                     {new Date(userData.created).toLocaleDateString()}
                                 </p>
                             </div>
@@ -187,7 +187,7 @@ const ProfilePage = () => {
                                     <FontAwesomeIcon icon={faTrophy} className="mr-2" />
                                     Best Streak
                                 </label>
-                                <p className={`${theme.textPrimary} font-medium`}>
+                                <p className={`${theme.textSecondary} font-medium`}>
                                     {userData.streak?.bestStreak || 0} days
                                 </p>
                             </div>

@@ -118,6 +118,66 @@ const dashboardService = {
         });
         return handleResponse(response);
     },
+
+    /**
+     * Get weekly points for the current user
+     * @returns {Promise<Object>} Weekly points by category
+     * @throws {Error} If fetching fails
+     */
+    getWeeklyPoints: async () => {
+        try {
+            const response = await fetch(`${API_URL}/dashboard/weekly-points`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("[ERROR] getWeeklyPoints failed:", errorData);
+                throw new Error(errorData.error || `Failed with status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log("[DEBUG] api.js - Weekly points received:", data);
+            return data;
+        } catch (error) {
+            console.error("[ERROR] getWeeklyPoints exception:", error);
+            throw error;
+        }
+    },
+
+    /**
+     * Update weekly points for the current user
+     * @param {Object} points - Points to add by category
+     * @returns {Promise<Object>} Updated weekly points
+     * @throws {Error} If update fails
+     */
+    updateWeeklyPoints: async (points) => {
+        try {
+            const response = await fetch(`${API_URL}/dashboard/weekly-points`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ points }),
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("[ERROR] updateWeeklyPoints failed:", errorData);
+                throw new Error(errorData.error || `Failed with status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log("[DEBUG] api.js - Weekly points updated:", data);
+            return data;
+        } catch (error) {
+            console.error("[ERROR] updateWeeklyPoints exception:", error);
+            throw error;
+        }
+    },
 };
 
 /**

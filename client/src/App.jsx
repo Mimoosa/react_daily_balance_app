@@ -11,12 +11,10 @@ import ActivityReportPage from './pages/ActivityReportPage';
 import FriendButton from './components/friends/FriendButton';
 import ProfilePage from './pages/ProfilePage';
 import InstructionPage from './pages/InstructionPage';
-import DebugPointsPage from './pages/DebugPointsPage';
 
 const AppContent = () => {
   const { theme } = useTheme();
   const [shouldShowFriendsButton, setShouldShowFriendsButton] = useState(true);
-  const isDev = import.meta.env.DEV;
 
   return (
     <div className={`min-h-screen ${theme.background}`}>
@@ -30,9 +28,6 @@ const AppContent = () => {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/activity" element={<ActivityReportPage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            {isDev && (
-              <Route path="/debug/points" element={<DebugPointsPage />} />
-            )}
           </Route>
         </Routes>
         {shouldShowFriendsButton && <FriendButton />}

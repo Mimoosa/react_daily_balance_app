@@ -10,7 +10,7 @@ function BarChart({ label, value, maxValue, maxPossibleValue = 1000 }) {
     
     // Calculate width percentage based on maxValue for visual scaling
     const widthPercentage = (value / maxValue) * 100;
-    // Calculate percentage of maximum possible points
+    // Calculate percentage of maximum possible points - keeping for width calculation but not displaying
     const percentOfMax = Math.round((value / maxPossibleValue) * 100);
 
     const colorMapping = {
@@ -80,7 +80,7 @@ function BarChart({ label, value, maxValue, maxPossibleValue = 1000 }) {
                     {showValue && (
                         <div className="absolute right-0 top-0 bottom-0 flex items-center pr-3 animate-fadeIn">
                             <span className="text-white text-sm font-medium drop-shadow-md">
-                                {value} p ({percentOfMax}%)
+                                {value} p
                             </span>
                         </div>
                     )}

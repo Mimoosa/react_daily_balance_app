@@ -24,7 +24,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
   return (
     <nav className={`${theme.backgroundViolet} px-4 py-3 shadow-lg flex justify-between lg:items-center`}>
       <Link to="/" className={`text-xl font-bold ${theme.textWhite}`}>
-        DailyBalance
+        Daily Balance
       </Link>
       
       <div className="flex flex-col">
@@ -69,7 +69,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                   >
                     <Link
                       to="/profile"
-                      className={`block px-4 py-2 text-sm ${theme.textPrimary} hover:${theme.backgroundViolet} hover:${theme.textWhite}`}
+                      className={`block px-4 py-2 text-sm ${theme.textSecondary} hover:${theme.backgroundActive} hover:${theme.textWhite}`}
                       onClick={() => setIsProfileMenuOpen(false)}
                     >
                       <FontAwesomeIcon icon={faUserCog} className="mr-2" />
@@ -80,7 +80,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                         handleLogout();
                         setIsProfileMenuOpen(false);
                       }}
-                      className={`w-full text-left px-4 py-2 text-sm ${theme.textPrimary} hover:${theme.backgroundViolet} hover:${theme.textWhite}`}
+                      className={`w-full text-left px-4 py-2 text-sm ${theme.textSecondary} hover:${theme.backgroundActive} hover:${theme.textWhite}`}
                     >
                       <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
                       Logout

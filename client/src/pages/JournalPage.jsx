@@ -204,7 +204,7 @@ const JournalPage = () => {
     };
 
     return (
-        <div className={`flex flex-col ${theme.backgroundWhite}`}  style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}} >
+        <div className={`flex flex-col ${theme.backgroundWhite}`} >
 
             {/* Main content area */}
             <div className="flex flex-col-reverse lg:flex-row flex-1">
