@@ -12,7 +12,7 @@
     "install:client": "cd client && npm install",
     "install:backend": "cd backend && npm install",
     "install": "npm run install:backend && npm run install:client",
-    "build": "npm run install:client && npm run client:build",
+    "build": "npm run install && npm run client:build",
     "render-postbuild": "NPM_CONFIG_PRODUCTION=false npm run install:client && npm run client:build"
   },
   "engines": {
