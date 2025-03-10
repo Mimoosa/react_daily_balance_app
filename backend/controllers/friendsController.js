@@ -277,7 +277,29 @@ const removeFriend = async (req, res) => {
     const userId = req.user.id;
     const { friendId } = req.params;
 
-    // Find and delete friend relationship
+    // Find both users
+    const user = await User.findById(userId);
+    const friend = await User.findById(friendId);
+
+    if (!user || !friend) {
+      return res.status(404).json({ error: "User or friend not found" });
+    }
+
+    // Check if they are friends in the User model
+    const areFriendsInUserModel = user.friends.includes(friendId) && friend.friends.includes(userId);
+
+    // Remove from User model's friends arrays
+    if (areFriendsInUserModel) {
+      // Remove friend from user's friends array
+      user.friends = user.friends.filter(id => id.toString() !== friendId);
+      await user.save();
+
+      // Remove user from friend's friends array
+      friend.friends = friend.friends.filter(id => id.toString() !== userId);
+      await friend.save();
+    }
+
+    // Also try to find and delete friend relationship in Friends collection for backward compatibility
     const result = await Friends.findOneAndDelete({
       $or: [
         { requester: userId, recipient: friendId, status: 'accepted' },
@@ -285,7 +307,41 @@ const removeFriend = async (req, res) => {
       ]
     });
 
-    if (!result) {
+    // Clean up any pending friend requests between these users
+    await Friends.deleteMany({
+      $or: [
+        { requester: userId, recipient: friendId },
+        { requester: friendId, recipient: userId }
+      ]
+    });
+
+    // Clean up friend requests in User model
+    if (user.friendRequests) {
+      // Remove from sent requests
+      user.friendRequests.sent = user.friendRequests.sent.filter(
+        req => req.user.toString() !== friendId
+      );
+      // Remove from received requests
+      user.friendRequests.received = user.friendRequests.received.filter(
+        req => req.user.toString() !== friendId
+      );
+      await user.save();
+    }
+
+    if (friend.friendRequests) {
+      // Remove from friend's sent requests
+      friend.friendRequests.sent = friend.friendRequests.sent.filter(
+        req => req.user.toString() !== userId
+      );
+      // Remove from friend's received requests
+      friend.friendRequests.received = friend.friendRequests.received.filter(
+        req => req.user.toString() !== userId
+      );
+      await friend.save();
+    }
+
+    // If not found in either model, return error
+    if (!result && !areFriendsInUserModel) {
       return res.status(404).json({ error: "Friend relationship not found" });
     }
 
@@ -450,9 +506,18 @@ const searchUsers = async (req, res) => {
 
     console.log(`Searching for users matching: "${query}" (excluding user ID: ${userId})`);
     
-    // Find users matching the search query (exclude current user)
+    // Get current user with friends list
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Find users matching the search query (exclude current user and their friends)
     const users = await User.find({
-      _id: { $ne: userId },
+      _id: { 
+        $ne: userId,
+        $nin: currentUser.friends // Exclude friends
+      },
       $or: [
         { username: { $regex: query, $options: 'i' } },
         { email: { $regex: query, $options: 'i' } }
@@ -493,7 +558,6 @@ const searchUsers = async (req, res) => {
         console.log(`User ${user.username || user.email} has no relationship with current user`);
       }
 
-      // Make sure we include all user fields in the response
       return {
         _id: user._id,
         username: user.username,

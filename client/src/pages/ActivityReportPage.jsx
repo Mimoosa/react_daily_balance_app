@@ -25,6 +25,7 @@ const DailyActivityReport = () => {
   const [processingAttempts, setProcessingAttempts] = useState(0);
   const [calculationTime, setCalculationTime] = useState(null);
   const { isLargeScreen, isExtraLargeScreen } = useScreenContext();
+  const [cardsVisible, setCardsVisible] = useState(false);
 
   
   /**
@@ -280,8 +281,12 @@ const DailyActivityReport = () => {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  // Remove or modify the second useEffect that was watching for journal changes
-  // since we're now handling activity generation directly in handleRegenerateAction
+  useEffect(() => {
+    // Trigger card animations with slight delay after component mounts
+    setTimeout(() => {
+      setCardsVisible(true);
+    }, 300);
+  }, []);
 
   // Update the handler to use the extracted function
   const handleRegenerateClick = async () => {
@@ -312,7 +317,7 @@ const DailyActivityReport = () => {
   return (
     <div className={`pb-10 ${theme.backgroundWhite}`} style={isLargeScreen && !error || isExtraLargeScreen ? { height: `calc(100vh - 64px)`} : {}} >
       <div className="flex flex-col items-center">
-      <div className={`w-full py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6`}>
+      <div className={`w-full py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6 transition-all duration-700 animate-fadeDown`}>
             <h1 className={`text-2xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
                 <FontAwesomeIcon icon={faCalendarDay} className={`${theme.textViolet}`} />
                 Daily Activity Report
@@ -321,14 +326,16 @@ const DailyActivityReport = () => {
         
         {/* Add calculation time info */}
         {calculationTime && activitiesProcessed && (
-          <div className="text-sm text-gray-500 flex items-center mt-2">
+          <div className={`text-sm text-gray-500 flex items-center mt-2 transition-all duration-500 transform
+                         ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <FontAwesomeIcon icon={faClock} className="mr-1" />
             Last calculated: {formatCalculationTime(calculationTime)}
           </div>
         )}
         
         {error && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 flex items-center">
+          <div className={`mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 flex items-center
+                         transition-all duration-500 transform ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <FontAwesomeIcon icon={faExclamationTriangle} className="mr-2" />
             {error}
             <button 
@@ -340,7 +347,9 @@ const DailyActivityReport = () => {
           </div>
         )}
         
-        <div className="mt-6 flex flex-col lg:flex-row gap-6">
+        <div className={`mt-6 flex flex-col lg:flex-row gap-6 transition-all duration-500 transform
+                        ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+             style={{ transitionDelay: '200ms' }}>
           <div>
             <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Daily Summary</h3>
             <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px', overflowY: 'auto' }}>
@@ -429,6 +438,17 @@ const DailyActivityReport = () => {
           </div>
         </div>
       </div>
+
+      {/* Add the keyframes for animations */}
+      <style jsx>{`
+        @keyframes fadeDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeDown {
+          animation: fadeDown 0.8s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };

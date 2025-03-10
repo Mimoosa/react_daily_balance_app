@@ -117,7 +117,7 @@ const dashboardService = {
             body: JSON.stringify(scores),
         });
         return handleResponse(response);
-    },
+    }
 };
 
 /**
