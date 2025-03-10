@@ -36,7 +36,7 @@ const JournalPage = () => {
     const [showActivityPrompt, setShowActivityPrompt] = useState(false);
     const [promptType, setPromptType] = useState(''); // 'new' or 'edit'
     const navigate = useNavigate();
-    const { isLargeScreen } = useScreenContext();
+    const { isExtraLargeScreen } = useScreenContext();
 
     /**
      * Fetches user's journal entries on component mount

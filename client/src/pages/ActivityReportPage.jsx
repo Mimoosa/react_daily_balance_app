@@ -24,7 +24,7 @@ const DailyActivityReport = () => {
   const [activitiesProcessed, setActivitiesProcessed] = useState(false);
   const [processingAttempts, setProcessingAttempts] = useState(0);
   const [calculationTime, setCalculationTime] = useState(null);
-  const { isLargeScreen } = useScreenContext();
+  const { isLargeScreen, isExtraLargeScreen } = useScreenContext();
 
   
   /**
@@ -310,7 +310,7 @@ const DailyActivityReport = () => {
   
 
   return (
-    <div className={`pb-10 ${theme.backgroundWhite}`} style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {}} >
+    <div className={`pb-10 ${theme.backgroundWhite}`} style={isLargeScreen && !error || isExtraLargeScreen ? { height: `calc(100vh - 64px)`} : {}} >
       <div className="flex flex-col items-center">
       <div className={`w-full py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6`}>
             <h1 className={`text-2xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
