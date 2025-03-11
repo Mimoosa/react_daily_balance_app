@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes } from '../contexts/icons';
 import { faCalendarDay, faBook, faChartSimple, faUser, faChalkboardTeacher, faChevronDown, faUserCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
@@ -10,6 +10,7 @@ import ThemeToggle from './ThemeToggle';
 const Navbar = ({ isOpen, setIsOpen }) => {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const [resetStatus, setResetStatus] = useState(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
@@ -20,6 +21,11 @@ const Navbar = ({ isOpen, setIsOpen }) => {
       setIsOpen(false);
     };
   }, [navigate, setIsOpen]);
+
+  // Close profile menu when auth state changes
+  useEffect(() => {
+    setIsProfileMenuOpen(false);
+  }, [isAuthenticated]);
 
   // Prevent scrolling when mobile menu is open
   useEffect(() => {
@@ -39,6 +45,10 @@ const Navbar = ({ isOpen, setIsOpen }) => {
     setIsOpen(false);
     navigate('/login');
   };
+
+  const isActivePath = (path) => {
+    return location.pathname === path;
+  };
   
   return (
     <nav className={`${theme.backgroundViolet} px-4 py-3 shadow-lg flex justify-between lg:items-center relative z-50`}>
@@ -50,16 +60,28 @@ const Navbar = ({ isOpen, setIsOpen }) => {
       <div className="hidden lg:flex lg:items-center">
         {isAuthenticated && (
           <div className="flex items-center space-x-4">
-            <Link to="/instruction" className={`${theme.textWhite} hover:${theme.textViolet}`}>
+            <Link 
+              to="/instruction" 
+              className={`${theme.textWhite} hover:${theme.textViolet} pb-1 ${isActivePath('/instruction') ? theme.navActive : ''}`}
+            >
               <FontAwesomeIcon icon={faChalkboardTeacher} className="mr-1" /> Instruction
             </Link>
-            <Link to="/journal" className={`${theme.textWhite} hover:${theme.textViolet}`}>
+            <Link 
+              to="/journal" 
+              className={`${theme.textWhite} hover:${theme.textViolet} pb-1 ${isActivePath('/journal') ? theme.navActive : ''}`}
+            >
               <FontAwesomeIcon icon={faBook} className="mr-1" /> Journal
             </Link>
-            <Link to="/activity" className={`${theme.textWhite} hover:${theme.textViolet}`}>
+            <Link 
+              to="/activity" 
+              className={`${theme.textWhite} hover:${theme.textViolet} pb-1 ${isActivePath('/activity') ? theme.navActive : ''}`}
+            >
               <FontAwesomeIcon icon={faCalendarDay} className="mr-1" /> Daily Report
             </Link>
-            <Link to="/dashboard" className={`${theme.textWhite} hover:${theme.textViolet}`}>
+            <Link 
+              to="/dashboard" 
+              className={`${theme.textWhite} hover:${theme.textViolet} pb-1 ${isActivePath('/dashboard') ? theme.navActive : ''}`}
+            >
               <FontAwesomeIcon icon={faChartSimple} className="mr-1" /> Dashboard
             </Link>
             
@@ -67,7 +89,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
             <div className="relative">
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className={`${theme.textWhite} hover:${theme.textViolet} flex items-center`}
+                className={`${theme.textWhite} hover:${theme.textViolet} flex items-center pb-1 ${isActivePath('/profile') ? theme.navActive : ''}`}
               >
                 <FontAwesomeIcon icon={faUser} className="mr-1" />
                 {user?.username || 'Account'}
@@ -165,35 +187,35 @@ const Navbar = ({ isOpen, setIsOpen }) => {
               <div className="flex flex-col space-y-4">
                 <Link 
                   to="/instruction" 
-                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md`}
+                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md ${isActivePath('/instruction') ? `${theme.backgroundActive} ${theme.textWhite}` : ''}`}
                   onClick={() => setIsOpen(false)}
                 >
                   <FontAwesomeIcon icon={faChalkboardTeacher} className="mr-2" /> Instruction
                 </Link>
                 <Link 
                   to="/journal" 
-                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md`}
+                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md ${isActivePath('/journal') ? `${theme.backgroundActive} ${theme.textWhite}` : ''}`}
                   onClick={() => setIsOpen(false)}
                 >
                   <FontAwesomeIcon icon={faBook} className="mr-2" /> Journal
                 </Link>
                 <Link 
                   to="/activity" 
-                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md`}
+                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md ${isActivePath('/activity') ? `${theme.backgroundActive} ${theme.textWhite}` : ''}`}
                   onClick={() => setIsOpen(false)}
                 >
                   <FontAwesomeIcon icon={faCalendarDay} className="mr-2" /> Daily Report
                 </Link>
                 <Link 
                   to="/dashboard" 
-                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md`}
+                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md ${isActivePath('/dashboard') ? `${theme.backgroundActive} ${theme.textWhite}` : ''}`}
                   onClick={() => setIsOpen(false)}
                 >
                   <FontAwesomeIcon icon={faChartSimple} className="mr-2" /> Dashboard
                 </Link>
                 <Link 
                   to="/profile" 
-                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md`}
+                  className={`${theme.textViolet} hover:${theme.backgroundViolet} hover:${theme.textWhite} p-2 rounded-md ${isActivePath('/profile') ? `${theme.backgroundActive} ${theme.textWhite}` : ''}`}
                   onClick={() => setIsOpen(false)}
                 >
                   <FontAwesomeIcon icon={faUserCog} className="mr-2" /> Settings

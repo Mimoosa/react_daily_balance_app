@@ -1,7 +1,7 @@
 import React, { useRef, useCallback } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarDay, faPencilAlt, faBook } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDay, faPencilAlt, faBook, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { faDumbbell, faBrain, faUsers, faHeart, faExclamationTriangle, faSync, faClock } from '../contexts/icons';
 import { ActivityReportService, userService } from '../services/api';
 import { useState, useEffect, useMemo } from 'react';
@@ -240,7 +240,7 @@ const DailyActivityReport = () => {
       setProcessingAttempts(prev => prev + 1);
       setLoading(false);
     }
-  }, [processingAttempts]); // Add dependencies as needed
+  }, [processingAttempts]);
 
   const handleNavigateToJournal = () => {
     setNavigating(true);
@@ -270,6 +270,16 @@ const DailyActivityReport = () => {
       const userTotalPoints = await userService.getTotalPoints();
       setUserPoints(userTotalPoints);
 
+      // If we have both activities and points already processed, just set the state
+      if (data.activitiesProcessed && data.activities?.length && data.points) {
+        setTotalPoints(data.points);
+        setActivities(data.activities);
+        setActivitiesProcessed(true);
+        setLoading(false);
+        return;
+      }
+
+      // Only proceed with calculations if we don't have processed data
       const preservedPoints = data.points && Object.keys(data.points).length > 0 
           ? { ...data.points } 
           : null;
@@ -278,10 +288,6 @@ const DailyActivityReport = () => {
         await handleRegenerateAction(false, preservedPoints);
       } else if (!data.activitiesProcessed) {
         await generateActivities(data.content);
-      } else if (data.activities?.length && data.points) {
-        setTotalPoints(data.points);
-        setActivities(data.activities);
-        setActivitiesProcessed(true);
       } else {
         await generateActivities(data.content);
       }
@@ -469,15 +475,26 @@ const DailyActivityReport = () => {
                         These points have been added to your profile.
                       </p>
                       
-                      <button
-                        className={`mt-4 px-3 py-1 text-sm ${theme.backgroundCard} rounded 
-                          hover:bg-opacity-80 flex items-center ${theme.textSecondary}`}
-                        onClick={handleRegenerateClick}
-                        disabled={loading}
-                      >
-                        <FontAwesomeIcon icon={faSync} className="mr-1" />
-                        Recalculate
-                      </button>
+                      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                        <button
+                          className={`px-3 py-1.5 text-sm ${theme.backgroundCard} rounded-md
+                            hover:bg-opacity-80 flex items-center ${theme.textSecondary}`}
+                          onClick={handleRegenerateClick}
+                          disabled={loading}
+                        >
+                          <FontAwesomeIcon icon={faSync} className="mr-2" />
+                          Recalculate
+                        </button>
+
+                        <button
+                          onClick={() => navigate('/dashboard')}
+                          className={`${theme.buttonPrimary} px-4 py-1.5 text-sm rounded-md flex items-center justify-center gap-2 
+                            transition-colors duration-300 shadow-md hover:shadow-lg`}
+                        >
+                          <FontAwesomeIcon icon={faChartLine} />
+                          View Dashboard
+                        </button>
+                      </div>
                     </>
                   )}
                 </>

@@ -7,6 +7,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const clearAuthState = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
   useEffect(() => {
     // Check if user is logged in by verifying the token
     const checkAuth = async () => {
@@ -16,9 +23,7 @@ export const AuthProvider = ({ children }) => {
 
         if (!token) {
           console.log('[AuthContext] No token found'); // Debug log
-          setIsAuthenticated(false);
-          setUser(null);
-          localStorage.removeItem('username'); // Clear username from localStorage
+          clearAuthState();
           setLoading(false);
           return;
         }
@@ -33,21 +38,15 @@ export const AuthProvider = ({ children }) => {
           const data = await response.json();
           console.log('[AuthContext] Auth verification successful:', data); // Debug log
           setUser(data.user);
-          localStorage.setItem('username', data.user.username); // Update username in localStorage
+          localStorage.setItem('username', data.user.username);
           setIsAuthenticated(true);
         } else {
           console.log('[AuthContext] Auth verification failed, clearing token'); // Debug log
-          localStorage.removeItem('token');
-          localStorage.removeItem('username'); // Clear username from localStorage
-          setUser(null);
-          setIsAuthenticated(false);
+          clearAuthState();
         }
       } catch (error) {
         console.error('[AuthContext] Auth check error:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('username'); // Clear username from localStorage
-        setUser(null);
-        setIsAuthenticated(false);
+        clearAuthState();
       } finally {
         setLoading(false);
       }
@@ -59,7 +58,7 @@ export const AuthProvider = ({ children }) => {
   const login = (token, userData) => {
     console.log('[AuthContext] Login called with:', { token, userData }); // Debug log
     localStorage.setItem('token', token);
-    localStorage.setItem('username', userData.username); // Store username
+    localStorage.setItem('username', userData.username);
     setUser(userData);
     setIsAuthenticated(true);
     console.log('[AuthContext] State updated:', { isAuthenticated: true, user: userData }); // Debug log
@@ -67,17 +66,28 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     console.log('[AuthContext] Logout called'); // Debug log
-    localStorage.removeItem('token');
-    localStorage.removeItem('username'); // Clear username from localStorage
-    setUser(null);
-    setIsAuthenticated(false);
+    clearAuthState();
+  };
+
+  const handleAccountDeletion = () => {
+    console.log('[AuthContext] Account deletion detected'); // Debug log
+    clearAuthState();
+    // Refresh the page to ensure all client-side states are reset
+    window.location.reload();
   };
 
   // Add debug log for render
   console.log('[AuthContext] Rendering with state:', { isAuthenticated, user, loading });
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      user, 
+      loading, 
+      login, 
+      logout,
+      handleAccountDeletion 
+    }}>
       {children}
     </AuthContext.Provider>
   );

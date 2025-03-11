@@ -34,6 +34,7 @@ export const themes = {
         divider: 'border-gray-200', // Divider color
         success: 'text-green-600',
         buttonPrimary: 'bg-violet-600 text-white hover:bg-violet-700',
+        navActive: 'text-violet-300 border-b-2 border-violet-300', // Active navigation item
     },
     dark: {
         textWhite: 'text-gray-100', // Slightly off-white for better contrast
@@ -56,6 +57,7 @@ export const themes = {
         divider: 'border-gray-700', // Divider color
         success: 'text-green-400',
         buttonPrimary: 'bg-violet-500 text-white hover:bg-violet-600',
+        navActive: 'text-violet-300 border-b-2 border-violet-300', // Active navigation item
     },
 };
 
