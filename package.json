@@ -12,7 +12,8 @@
     "install:client": "cd client && npm install",
     "install:backend": "cd backend && npm install",
     "install:all": "npm run install:backend && npm run install:client",
-    "build": "npm run install:all && npm run client:build"
+    "build": "npm run install:all && npm run client:build",
+    "test":"cross-env NODE_ENV=test jest --verbose --runInBand"
   },
   "engines": {
     "node": ">=18.0.0"

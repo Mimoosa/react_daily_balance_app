@@ -30,7 +30,7 @@ const getTodaysJournal = async (req, res) => {
         
         const hasPoints = Object.keys(pointsData).length > 0;
         
-        res.json({
+        res.status(200).json({
             content: todaysJournal.content,
             points: hasPoints ? pointsData : null,
             activities: todaysJournal.activities || null,
