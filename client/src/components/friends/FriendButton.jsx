@@ -3,6 +3,7 @@ import { IoAccessibilityOutline } from 'react-icons/io5';
 import { useFriendHandlers } from './friendHandlers';
 import FriendsTabs from './FriendsTabs';
 import { useTheme } from '../../contexts/ThemeContext'; // Import theme context
+import { useAuth } from '../../contexts/AuthContext'; // Add this import
 
 export default function FriendButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +15,10 @@ export default function FriendButton() {
   const [sentRequests, setSentRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(null); // Start with null to indicate check in progress
+  
+  // Use AuthContext instead of local state
+  const { isAuthenticated } = useAuth();
+  const { isDark } = useTheme();
 
   // Get handlers from the extracted file
   const {
@@ -34,20 +38,6 @@ export default function FriendButton() {
     setLoading,
     setError
   );
-
-  // Get current theme (dark or light)
-  const { isDark } = useTheme();
-
-  // Check if the user is authenticated when the component mounts
-  useEffect(() => {
-    // Simulate an async check (e.g., fetching from localStorage or making an API call)
-    const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
-    if (token) {
-      setIsAuthenticated(true); // User is authenticated
-    } else {
-      setIsAuthenticated(false); // User is not authenticated
-    }
-  }, []); // Only run once on mount
 
   // Fetch friends data when component opens and if authenticated
   useEffect(() => {
@@ -73,14 +63,9 @@ export default function FriendButton() {
     setIsOpen(!isOpen);
   };
 
-  // If authentication status is still being determined, return null (don't render the button yet)
-  if (isAuthenticated === null) {
-    return null; // Prevent rendering until authentication status is determined
-  }
-
-  // Ensure the component doesn't render if authentication status is false
+  // If not authenticated, don't render anything
   if (!isAuthenticated) {
-    return null; // Return nothing if not authenticated
+    return null;
   }
 
   return (

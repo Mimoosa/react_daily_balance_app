@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
 import { authService } from '../services/api';
 import bgImage from '../images/bg_image.jpg';
-import { useScreenContext } from '../contexts/ScreenContext'; 
+import { useScreenContext } from '../contexts/ScreenContext';
+import { useAuth } from '../contexts/AuthContext';
 /**
  * LoginPage Component
  * Handles both user login and registration functionality
@@ -26,6 +27,7 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const { isLargeScreen, navbarHeight } = useScreenContext();
+    const { login } = useAuth();
 
     // Add effect to update isLogin when URL parameters change
     useEffect(() => {
@@ -53,7 +55,6 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Validate form data before submission
             if (!formData.username || !formData.password) {
                 setError('Username and password are required');
                 return;
@@ -69,14 +70,17 @@ const LoginPage = () => {
             console.log('Auth response:', response);
 
             if (response && response.data && response.data.token) {
-                localStorage.setItem('token', response.data.token);
-                localStorage.setItem('username', response.data.username || response.data.id);
+                login(response.data.token, {
+                    id: response.data.id,
+                    username: response.data.username
+                });
+                
                 setSuccess(isLogin ? 'Login successful!' : 'Registration successful!');
 
                 setTimeout(() => {
-                  isLogin 
-                  ? navigate('/dashboard')
-                  :navigate('/instruction');
+                    isLogin 
+                    ? navigate('/dashboard')
+                    : navigate('/instruction');
                 }, 1500);
             } else {
                 console.error('Invalid response format:', response);

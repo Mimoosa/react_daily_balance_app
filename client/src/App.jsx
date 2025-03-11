@@ -12,6 +12,7 @@ import FriendButton from './components/friends/FriendButton';
 import ProfilePage from './pages/ProfilePage';
 import InstructionPage from './pages/InstructionPage';
 import FriendDashboard from './components/friends/FriendDashboard';
+import { AuthProvider } from './contexts/AuthContext';
 
 const AppContent = () => {
   const { theme } = useTheme();
@@ -40,11 +41,13 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <ThemeProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
   );
 };
 

@@ -11,6 +11,7 @@ import {
 } from 'react-icons/io5';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function FriendsTabs({
   activeTab,
@@ -31,6 +32,20 @@ export default function FriendsTabs({
 }) {
   const { isDark } = useTheme();
   const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
+  // Add debug logs
+  console.log('FriendsTabs render:', { isAuthenticated, authLoading });
+
+  // Wait for auth to finish loading
+  if (authLoading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    console.log('User not authenticated, hiding FriendsTabs');
+    return null;
+  }
 
   // Render profile image or fallback icon
   const renderProfileImage = (imageUrl) => {
@@ -200,18 +215,43 @@ export default function FriendsTabs({
         ) : (
           <div className="flex-grow overflow-y-auto">
             {friends.map((friend) => (
-              <div key={friend._id} className="flex items-center justify-between p-2 border-b dark:border-gray-600">
-                <div className="flex items-center">
-                  {renderProfileImage(friend.image)}
-                  <span className={`text-gray-800 ${isDark ? 'dark:text-white' : ''}`}>{friend.username}</span>
-                </div>
-                <button 
-                  onClick={() => handleRemoveFriend(friend._id)}
-                  className="text-gray-500 hover:text-red-500"
-                  title="Remove friend"
+              <div 
+                key={friend._id} 
+                className="flex items-center justify-between p-2 border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 group"
+              >
+                <div 
+                  className="flex items-center flex-grow cursor-pointer" 
+                  onClick={() => handleFriendClick(friend._id)}
                 >
-                  <IoTrashOutline size={18} />
-                </button>
+                  {renderProfileImage(friend.image)}
+                  <span className={`text-gray-800 ${isDark ? 'dark:text-white' : ''}`}>
+                    {friend.username}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Dashboard view button */}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFriendClick(friend._id);
+                    }}
+                    className="text-violet-500 hover:text-violet-600 p-2 rounded-full hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                    title="View friend's dashboard"
+                  >
+                    <IoStatsChartOutline size={18} />
+                  </button>
+                  {/* Remove friend button */}
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFriend(friend._id);
+                    }}
+                    className="text-gray-500 hover:text-red-500 p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
+                    title="Remove friend"
+                  >
+                    <IoTrashOutline size={18} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
