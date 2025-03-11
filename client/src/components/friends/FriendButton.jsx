@@ -54,7 +54,7 @@ export default function FriendButton() {
 
       return () => clearTimeout(delaySearch);
     }
-  }, [searchQuery]);
+  }, [searchQuery, activeTab]);
 
   // Toggle the component open/closed
   const toggleFriendsList = () => {
@@ -62,12 +62,19 @@ export default function FriendButton() {
   };
 
   return (
-    <div className={`fixed bottom-5 right-5 z-50 ${isDark ? 'dark' : ''}`}>
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
+      {/* Friends List Panel */}
       {isOpen && (
-        <div className={`rounded-lg shadow-lg p-4 mb-3 w-72 ${isDark ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'}`}>
-          <h3 className={`text-lg font-semibold text-center mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Friends</h3>
+        <div
+          className={`absolute bottom-16 right-0 rounded-lg shadow-lg p-4 w-72 
+            ${isDark ? 'bg-gray-800 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'}
+          `}
+        >
+          <h3 className={`text-lg font-semibold text-center mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+            Friends
+          </h3>
           
-          {/* Using the extracted FriendsTabs component */}
+          {/* Friends Tabs Component */}
           <FriendsTabs
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -88,11 +95,14 @@ export default function FriendButton() {
         </div>
       )}
 
-      {/* Toggle Button */}
+      {/* Floating Toggle Button */}
       <button
         onClick={toggleFriendsList}
-        className={`w-14 h-14 rounded-full flex justify-center items-center shadow-lg ${isOpen ? 'bg-violet-600 text-white' : isDark ? 'bg-gray-800 text-white border-2 border-violet-600' : 'bg-white text-gray-800 border-2 border-violet-600'}`}
+        className={`w-14 h-14 rounded-full flex justify-center items-center shadow-lg relative
+          ${isOpen ? 'bg-violet-600 text-white' : isDark ? 'bg-gray-800 text-white border-2 border-violet-600' : 'bg-white text-gray-800 border-2 border-violet-600'}
+        `}
         aria-label="Toggle friends list"
+        aria-expanded={isOpen}
       >
         <IoAccessibilityOutline size={24} />
         {!isOpen && incomingRequests.length > 0 && (
