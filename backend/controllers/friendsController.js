@@ -380,7 +380,7 @@ const getFriends = async (req, res) => {
       image: friend.image
     }));
 
-    res.json(friends);
+    res.status(200).json(friends);
 
   } catch (error) {
     console.error('Get friends error:', error);

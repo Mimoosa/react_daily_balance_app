@@ -2,10 +2,10 @@ require('dotenv').config();
 
 
 // Validate essential environment variables
-if (!process.env.MONGODB_URI) {
+/* if (!process.env.MONGODB_URI) {
     console.error('Fatal Error: MONGODB_URI is not defined in .env file');
     process.exit(1);
-}
+} */
 
 if (!process.env.JWT_SECRET) {
     console.error('Fatal Error: JWT_SECRET is not defined in .env file');
