@@ -32,6 +32,8 @@ export const themes = {
         inputBackground: 'bg-white', // Form input background
         cardShadow: 'shadow-gray-200/50', // Custom shadow
         divider: 'border-gray-200', // Divider color
+        success: 'text-green-600',
+        buttonPrimary: 'bg-violet-600 text-white hover:bg-violet-700',
     },
     dark: {
         textWhite: 'text-gray-100', // Slightly off-white for better contrast
@@ -52,6 +54,8 @@ export const themes = {
         inputBackground: 'bg-gray-700', // Form input background
         cardShadow: 'shadow-violet-900/20', // Custom shadow with violet tint
         divider: 'border-gray-700', // Divider color
+        success: 'text-green-400',
+        buttonPrimary: 'bg-violet-500 text-white hover:bg-violet-600',
     },
 };
 

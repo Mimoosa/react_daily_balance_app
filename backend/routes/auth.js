@@ -1,8 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
-router.get('/verify', authMiddleware, async (req, res) => {
+/**
+ * @swagger
+ * /api/auth/verify:
+ *   get:
+ *     summary: Verify user's JWT token
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Invalid token or user not found
+ */
+
+router.get('/verify', protect, async (req, res) => {
   try {
     // Make sure req.user is being set by your auth middleware
     if (!req.user) {

@@ -18,6 +18,23 @@ const {
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     ActivityPoints:
+ *       type: object
+ *       properties:
+ *         Physical:
+ *           type: number
+ *         Cognitive:
+ *           type: number
+ *         Social:
+ *           type: number
+ *         Psychological:
+ *           type: number
+ */
+
+/**
+ * @swagger
  * /api/activityRepo/journal:
  *   get:
  *     summary: Get today's journal entry
@@ -79,6 +96,18 @@ const {
  *     responses:
  *       200:
  *         description: Weekly points data
+ *
+ * /api/activityRepo/reset-processing:
+ *   post:
+ *     summary: Reset activity processing flag
+ *     tags: [Activity]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Processing flag reset successfully
+ *       401:
+ *         description: Unauthorized
  */
 
 router.get('/journal', protect, getTodaysJournal);

@@ -115,6 +115,78 @@ router.post('/register', registerUser);
  */
 router.post('/login', loginUser);
 
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: User management and profile operations
+ */
+
+/**
+ * @swagger
+ * /api/users/profile:
+ *   get:
+ *     summary: Get user profile information
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *   put:
+ *     summary: Update user profile information
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *   delete:
+ *     summary: Delete user account
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Account deleted successfully
+ *
+ * /api/users/points:
+ *   get:
+ *     summary: Get user points
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User points data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ActivityPoints'
+ *
+ * /api/users/streak:
+ *   get:
+ *     summary: Get user's streak information
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User streak data
+ */
 router.get('/profile', protect, getUserInfo);
 router.put('/profile', protect, updateUserInfo);  // Changed from updateUserPoints to updateUserInfo
 router.delete('/profile', protect, deleteUser);

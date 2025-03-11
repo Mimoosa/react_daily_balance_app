@@ -20,6 +20,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const activityReportRoutes = require('./routes/activityReportRoutes');
 const devRoutes = require('./routes/devRoutes'); // Import the dev routes
 const friendsRoutes = require('./routes/friendsRoutes'); // Make sure friendsRoutes is imported at the top
+const authRoutes = require('./routes/auth'); // Add this line to import auth routes
 const errorHandler = require('./middleware/errorHandler');
 const connectDB = require('./config/db');
 const path = require('path');
@@ -42,6 +43,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/activityRepo', activityReportRoutes);
 app.use('/api/dev', devRoutes);
 app.use('/api/friends', friendsRoutes);
+app.use('/api/auth', authRoutes); // Add this line to register auth routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Serve static files from the React app in production

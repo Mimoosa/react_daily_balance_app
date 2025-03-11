@@ -32,6 +32,8 @@ const { protect } = require('../middleware/auth');
  *     responses:
  *       201:
  *         description: Friend request sent successfully
+ *       400:
+ *         description: Invalid request
  *
  * /api/friends/request/{requestId}/accept:
  *   post:
@@ -74,6 +76,28 @@ const { protect } = require('../middleware/auth');
  *     responses:
  *       200:
  *         description: List of friends
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *
+ * /api/friends/{friendId}:
+ *   delete:
+ *     summary: Remove a friend
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: friendId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Friend removed successfully
  *
  * /api/friends/requests:
  *   get:

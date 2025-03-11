@@ -151,8 +151,8 @@ const options = {
   },
   // Path to the API docs
   apis: [
-    './routes/*.js',
-    './models/*.js'
+    './backend/routes/*.js',
+    './backend/models/*.js'
   ],
 };
 

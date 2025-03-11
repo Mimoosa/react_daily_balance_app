@@ -7,7 +7,7 @@ const { protect } = require('../middleware/auth');
  * @swagger
  * tags:
  *   name: Dashboard
- *   description: Dashboard data and recommendations
+ *   description: Dashboard data and analytics
  */
 
 /**
@@ -45,6 +45,8 @@ const { protect } = require('../middleware/auth');
  *                   type: string
  *                 advice:
  *                   type: string
+ *       401:
+ *         description: Unauthorized
  */
 
 router.post('/getRecommendation', protect, generateResponse);

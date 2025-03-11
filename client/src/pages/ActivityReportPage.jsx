@@ -1,11 +1,12 @@
 import React, { useRef, useCallback } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarDay } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDay, faPencilAlt, faBook } from '@fortawesome/free-solid-svg-icons';
 import { faDumbbell, faBrain, faUsers, faHeart, faExclamationTriangle, faSync, faClock } from '../contexts/icons';
 import { ActivityReportService, userService } from '../services/api';
 import { useState, useEffect, useMemo } from 'react';
 import { useScreenContext } from '../contexts/ScreenContext'; 
+import { useNavigate } from 'react-router-dom';
 
 /**
  * DailyActivityReport Component
@@ -13,6 +14,40 @@ import { useScreenContext } from '../contexts/ScreenContext';
  * 
  * @component
  */
+const EmptyStateMessage = ({ theme, onNavigate, loading }) => (
+  <div className={`${theme.backgroundCard} p-8 rounded-lg shadow-lg max-w-md mx-auto text-center 
+    transform transition-all duration-500 hover:scale-102`}>
+    <div className="mb-6">
+      <FontAwesomeIcon 
+        icon={faBook} 
+        className={`${theme.textViolet} text-6xl mb-4 animate-float`} 
+      />
+    </div>
+    <h3 className={`text-xl font-semibold mb-3 ${theme.textViolet}`}>
+      No Journal Entry Yet
+    </h3>
+    <p className={`${theme.textSecondary} mb-6`}>
+      Start your day by writing a journal entry. This helps us track and analyze your daily activities.
+    </p>
+    <button
+      onClick={onNavigate}
+      disabled={loading}
+      className={`${theme.backgroundViolet} ${theme.textWhite} px-4 py-2 rounded-md 
+        ${theme.backgroundHover} flex items-center justify-center gap-2 mx-auto
+        transform transition-all duration-300 hover:scale-105`}
+    >
+      {loading ? (
+        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+      ) : (
+        <>
+          <FontAwesomeIcon icon={faPencilAlt} />
+          Create Journal Entry
+        </>
+      )}
+    </button>
+  </div>
+);
+
 const DailyActivityReport = () => {
   const { theme, isDark } = useTheme();
   const [journal, setJournal] = useState("");
@@ -26,6 +61,9 @@ const DailyActivityReport = () => {
   const [calculationTime, setCalculationTime] = useState(null);
   const { isLargeScreen, isExtraLargeScreen } = useScreenContext();
   const [cardsVisible, setCardsVisible] = useState(false);
+  const navigate = useNavigate();
+  const [navigating, setNavigating] = useState(false);
+  const [showEmptyState, setShowEmptyState] = useState(false);
 
   
   /**
@@ -204,23 +242,27 @@ const DailyActivityReport = () => {
     }
   }, [processingAttempts]); // Add dependencies as needed
 
+  const handleNavigateToJournal = () => {
+    setNavigating(true);
+    setTimeout(() => {
+      navigate('/journal');
+    }, 300);
+  };
+
   const fetchJournal = useCallback(async () => {
     try {
       setError('');
-      const searchParams = new URLSearchParams(window.location.search);
-      const isEdited = searchParams.get('edited') === 'true';
-      
-      // Fetch journal data first
       const data = await ActivityReportService.getTodaysEntry();
       
       if (!data?.content) {
-        throw new Error("No journal content found");
+        setShowEmptyState(true);
+        setLoading(false);
+        return;
       }
-
-      // Set journal content first
+      
+      setShowEmptyState(false);
       setJournal(data.content);
       
-      // Save calculation time if available
       if (data.calculatedAt) {
         setCalculationTime(new Date(data.calculatedAt));
       }
@@ -228,19 +270,13 @@ const DailyActivityReport = () => {
       const userTotalPoints = await userService.getTotalPoints();
       setUserPoints(userTotalPoints);
 
-      // Check for preserved points from previous calculations
       const preservedPoints = data.points && Object.keys(data.points).length > 0 
           ? { ...data.points } 
           : null;
       
-      if (isEdited) {
-        // Pass the preserved points directly for editing case
+      if (preservedPoints) {
         await handleRegenerateAction(false, preservedPoints);
-        return;
-      }
-      
-      if (!data.activitiesProcessed) {
-        // Pass the content directly instead of relying on state
+      } else if (!data.activitiesProcessed) {
         await generateActivities(data.content);
       } else if (data.activities?.length && data.points) {
         setTotalPoints(data.points);
@@ -253,12 +289,10 @@ const DailyActivityReport = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error in fetchJournal:", error);
-      setError('Failed to fetch journal entries. Please create a journal entry first.');
+      setShowEmptyState(true);
       setLoading(false);
     }
-}, [generateActivities, handleRegenerateAction]);
-
- 
+  }, [generateActivities, handleRegenerateAction]);
 
   // Simplify the useEffect
   const isInitialMount = useRef(true);
@@ -326,7 +360,7 @@ const DailyActivityReport = () => {
         
         {/* Add calculation time info */}
         {calculationTime && activitiesProcessed && (
-          <div className={`text-sm text-gray-500 flex items-center mt-2 transition-all duration-500 transform
+          <div className={`${theme.textSecondary} text-sm flex items-center mt-2 transition-all duration-500 transform
                          ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <FontAwesomeIcon icon={faClock} className="mr-1" />
             Last calculated: {formatCalculationTime(calculationTime)}
@@ -347,96 +381,111 @@ const DailyActivityReport = () => {
           </div>
         )}
         
-        <div className={`mt-6 flex flex-col lg:flex-row gap-6 transition-all duration-500 transform
+        {showEmptyState ? (
+          <div className="mt-8 animate-fadeIn">
+            <EmptyStateMessage 
+              theme={theme} 
+              onNavigate={handleNavigateToJournal} 
+              loading={navigating}
+            />
+          </div>
+        ) : (
+          <div className={`mt-6 flex flex-col lg:flex-row gap-6 transition-all duration-500 transform
                         ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-             style={{ transitionDelay: '200ms' }}>
-          <div>
-            <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Daily Summary</h3>
-            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px', overflowY: 'auto' }}>
-              {loading ? (
+               style={{ transitionDelay: '200ms' }}>
+            <div>
+              <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Daily Summary</h3>
+              <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px', overflowY: 'auto' }}>
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500 mb-4"></div>
+                    <p className={`${theme.textSecondary}`}>Analyzing your activities...</p>
+                  </div>
+                ) : activities.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500 mb-4"></div>
+                    <p className={`${theme.textSecondary}`}>Initializing analysis...</p>
+                  </div>
+                ) : (
+                  <ul>
+                      {transformedActivities.map((activity, index) => (
+                        <li key={index} className="mb-2">
+                          <p className={theme.textSecondary}>{activity.text}</p>
+                          {activity.categories.map((category, catIndex) => (
+                            <p key={catIndex} className={category.points >= 0 ? 'text-green-600' : 'text-red-600'}>
+                              <FontAwesomeIcon 
+                                icon={labelIcons[category.category]} 
+                                size="lg" 
+                                className={`${theme.textViolet} mr-2`} 
+                              />
+                              {category.category}: {category.points} points
+                            </p>
+                          ))}
+                        </li>
+                      ))}
+                    </ul>
+                )}
+              </div>
+            </div>
+            
+            <div>
+            <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Total Points</h3>
+            <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px'}}>
+            {loading ? (
                 <div className="flex flex-col items-center justify-center h-full">
                   <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500 mb-4"></div>
-                  <p className="text-gray-500">Analyzing your activities...</p>
+                  <p className={`${theme.textSecondary}`}>Calculating points...</p>
                 </div>
-              ) : activities.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500 mb-4"></div>
-                  <p className="text-gray-500">Initializing analysis...</p>
-                </div>
+              ) : Object.keys(totalPoints).length === 0 ? (
+                <p className={`${theme.textSecondary}`}>No points calculated yet.</p>
               ) : (
-                <ul>
-                    {transformedActivities.map((activity, index) => (
+                <>
+                  <ul>
+                    {Object.entries(totalPoints).map(([category, points], index) => (
                       <li key={index} className="mb-2">
-                        <p className={theme.textSecondary}>{activity.text}</p>
-                        {activity.categories.map((category, catIndex) => (
-                          <p key={catIndex} className={category.points >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            <FontAwesomeIcon 
-                              icon={labelIcons[category.category]} 
-                              size="lg" 
-                              className={`${theme.textViolet} mr-2`} 
-                            />
-                            {category.category}: {category.points} points
-                          </p>
-                        ))}
+                        <p className={`${points >= 0 ? theme.success : theme.alert} flex items-center`}> 
+                          <FontAwesomeIcon 
+                            icon={labelIcons[category]} 
+                            size="lg" 
+                            className={`${theme.textViolet} mr-2`}
+                          />
+                          {category}: {points} points
+                        </p>
                       </li>
                     ))}
                   </ul>
+                  
+                  {activitiesProcessed && (
+                    <>
+                      {/* Add calculation time under the points display */}
+                      {calculationTime && (
+                        <p className={`mt-1 text-xs ${theme.textSecondary} flex items-center`}>
+                          <FontAwesomeIcon icon={faClock} className="mr-1" />
+                          Calculated {formatCalculationTime(calculationTime)}
+                        </p>
+                      )}
+                      
+                      <p className={`mt-2 text-sm ${theme.textSecondary}`}>
+                        These points have been added to your profile.
+                      </p>
+                      
+                      <button
+                        className={`mt-4 px-3 py-1 text-sm ${theme.backgroundCard} rounded 
+                          hover:bg-opacity-80 flex items-center ${theme.textSecondary}`}
+                        onClick={handleRegenerateClick}
+                        disabled={loading}
+                      >
+                        <FontAwesomeIcon icon={faSync} className="mr-1" />
+                        Recalculate
+                      </button>
+                    </>
+                  )}
+                </>
               )}
             </div>
+            </div>
           </div>
-          
-          <div>
-          <h3 className={`text-xl text-center font-semibold mb-3 lg:mt-2 ${theme.textViolet}`}>Total Points</h3>
-          <div className={`${theme.backgroundCard} p-6 rounded-md shadow-lg w-80`} style={{ height: '300px'}}>
-          {loading ? (
-              <div className="flex flex-col items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500 mb-4"></div>
-                <p className="text-gray-500">Calculating points...</p>
-              </div>
-            ) : Object.keys(totalPoints).length === 0 ? (
-              <p className="text-gray-500">No points calculated yet.</p>
-            ) : (
-              <>
-                <ul>
-                  {Object.entries(totalPoints).map(([category, points], index) => (
-                    <li key={index} className="mb-2">
-                      <p className={`${points >= 0 ? 'text-green-600' : 'text-red-600'}`}> 
-                        <FontAwesomeIcon icon={labelIcons[category]} size="lg" className={`${theme.textViolet} text-black mr-2`}/>
-                        {category}: {points} points
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-                
-                {activitiesProcessed && (
-                  <>
-                    {/* Add calculation time under the points display */}
-                    {calculationTime && (
-                      <p className="mt-1 text-xs text-gray-500 flex items-center">
-                        <FontAwesomeIcon icon={faClock} className="mr-1" />
-                        Calculated {formatCalculationTime(calculationTime)}
-                      </p>
-                    )}
-                    
-                    <p className="mt-2 text-sm text-gray-500">
-                      These points have been added to your profile.
-                    </p>
-                    
-                    <button
-                      className="mt-4 px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300 flex items-center"
-                      onClick={handleRegenerateClick}
-                      disabled={loading}
-                    >
-                      <FontAwesomeIcon icon={faSync} className="mr-1" />
-                      Recalculate
-                    </button>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Add the keyframes for animations */}
@@ -447,6 +496,24 @@ const DailyActivityReport = () => {
         }
         .animate-fadeDown {
           animation: fadeDown 0.8s ease-out forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        .hover\:scale-102:hover {
+          transform: scale(1.02);
         }
       `}</style>
     </div>
