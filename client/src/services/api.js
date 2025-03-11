@@ -438,6 +438,15 @@ const friendsService = {
             }
         });
         return handleResponse(response);
+    },
+
+    getFriendDashboard: async (friendId) => {
+        const response = await fetch(`${API_URL}/users/friends/${friendId}/dashboard`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        return handleResponse(response);
     }
 };
 

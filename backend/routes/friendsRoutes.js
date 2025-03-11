@@ -3,6 +3,106 @@ const router = express.Router();
 const friendsController = require('../controllers/friendsController');
 const { protect } = require('../middleware/auth');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Friends
+ *   description: Friend management and social features
+ */
+
+/**
+ * @swagger
+ * /api/friends/request:
+ *   post:
+ *     summary: Send a friend request
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - recipientId
+ *             properties:
+ *               recipientId:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Friend request sent successfully
+ *
+ * /api/friends/request/{requestId}/accept:
+ *   post:
+ *     summary: Accept a friend request
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Friend request accepted
+ *
+ * /api/friends/request/{requestId}/reject:
+ *   post:
+ *     summary: Reject a friend request
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Friend request rejected
+ *
+ * /api/friends:
+ *   get:
+ *     summary: Get user's friends list
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of friends
+ *
+ * /api/friends/requests:
+ *   get:
+ *     summary: Get pending friend requests
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of pending friend requests
+ *
+ * /api/friends/search:
+ *   get:
+ *     summary: Search for users
+ *     tags: [Friends]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Search query string
+ *     responses:
+ *       200:
+ *         description: List of matching users
+ */
+
 // Log all incoming requests to this route
 router.use((req, res, next) => {
   console.log(`Friends API request: ${req.method} ${req.originalUrl}`);

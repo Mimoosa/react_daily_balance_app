@@ -522,6 +522,42 @@ const updateUserInfo = async (req, res) => {
     }
 }
 
+const getFriendDashboard = async (req, res) => {
+    try {
+        const friendId = req.params.friendId;
+        
+        // Check if the requesting user is friends with the target user
+        const requestingUser = await User.findById(req.user.id);
+        if (!requestingUser.friends?.includes(friendId)) {
+            return res.status(403).json({ error: 'You must be friends to view their dashboard' });
+        }
+        
+        const friend = await User.findById(friendId);
+        if (!friend) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Return data with proper default values for streak
+        res.json({
+            username: friend.username,
+            points: friend.totalPoints || friend.points || {
+                Physical: 0,
+                Psychological: 0,
+                Social: 0,
+                Cognitive: 0
+            },
+            streak: {
+                currentStreak: friend.streak?.count || 0,
+                bestStreak: friend.streak?.bestStreak || 0,
+                lastEntryDate: friend.streak?.lastEntryDate || null
+            }
+        });
+    } catch (error) {
+        console.error('[ERROR] getFriendDashboard:', error);
+        res.status(400).json({ error: error.message });
+    }
+};
+
 module.exports = {
     registerUser,
     loginUser,
@@ -533,5 +569,6 @@ module.exports = {
     getUserStreak,
     updateUserStreak,
     getUserInfo,
-    updateUserInfo
+    updateUserInfo,
+    getFriendDashboard
 };

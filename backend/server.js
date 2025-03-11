@@ -23,6 +23,8 @@ const friendsRoutes = require('./routes/friendsRoutes'); // Make sure friendsRou
 const errorHandler = require('./middleware/errorHandler');
 const connectDB = require('./config/db');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./config/swagger');
 
 const app = express();
 
@@ -40,6 +42,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/activityRepo', activityReportRoutes);
 app.use('/api/dev', devRoutes);
 app.use('/api/friends', friendsRoutes);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === 'production') {

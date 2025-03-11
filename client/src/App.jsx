@@ -11,6 +11,7 @@ import ActivityReportPage from './pages/ActivityReportPage';
 import FriendButton from './components/friends/FriendButton';
 import ProfilePage from './pages/ProfilePage';
 import InstructionPage from './pages/InstructionPage';
+import FriendDashboard from './components/friends/FriendDashboard';
 
 const AppContent = () => {
   const { theme } = useTheme();
@@ -28,6 +29,7 @@ const AppContent = () => {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/activity" element={<ActivityReportPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/friend/:friendId/dashboard" element={<FriendDashboard />} />
           </Route>
         </Routes>
         {shouldShowFriendsButton && <FriendButton />}

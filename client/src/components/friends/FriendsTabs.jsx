@@ -6,9 +6,11 @@ import {
   IoCheckmarkCircleOutline,
   IoCloseCircleOutline,
   IoArrowUndoOutline,
-  IoTrashOutline
+  IoTrashOutline,
+  IoStatsChartOutline
 } from 'react-icons/io5';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function FriendsTabs({
   activeTab,
@@ -29,6 +31,7 @@ export default function FriendsTabs({
 }) {
   // Use theme context to get isDark value
   const { isDark } = useTheme();
+  const navigate = useNavigate();
 
   // Render profile image or fallback icon
   const renderProfileImage = (imageUrl) => {
@@ -191,18 +194,39 @@ export default function FriendsTabs({
           ) : (
             <div className="max-h-64 overflow-y-auto">
               {friends.map((friend) => (
-                <div key={friend._id} className="flex items-center justify-between p-2 border-b dark:border-gray-600">
-                  <div className="flex items-center">
+                <div 
+                  key={friend._id} 
+                  className="flex items-center justify-between p-2 border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 group"
+                >
+                  <div className="flex items-center flex-grow cursor-pointer" onClick={() => handleFriendClick(friend._id)}>
                     {renderProfileImage(friend.image)}
-                    <span className={`text-gray-800 ${isDark ? 'dark:text-white' : ''}`}>{friend.username}</span>
+                    <span className={`text-gray-800 ${isDark ? 'dark:text-white' : ''}`}>
+                      {friend.username}
+                    </span>
+                    <div className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center text-violet-500">
+                      <IoStatsChartOutline size={16} />
+                      <span className="text-xs ml-1">View Dashboard</span>
+                    </div>
                   </div>
-                  <button 
-                    onClick={() => handleRemoveFriend(friend._id)}
-                    className="text-gray-500 hover:text-red-500"
-                    title="Remove friend"
-                  >
-                    <IoTrashOutline size={18} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => handleFriendClick(friend._id)}
+                      className="text-violet-500 hover:text-violet-600 p-2 rounded-full hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                      title="View friend's dashboard"
+                    >
+                      <IoStatsChartOutline size={18} />
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFriend(friend._id);
+                      }}
+                      className="text-gray-500 hover:text-red-500 p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
+                      title="Remove friend"
+                    >
+                      <IoTrashOutline size={18} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -276,6 +300,10 @@ export default function FriendsTabs({
       default:
         return <div>Select a tab</div>;
     }
+  };
+
+  const handleFriendClick = (friendId) => {
+    navigate(`/friend/${friendId}/dashboard`);
   };
 
   return (
