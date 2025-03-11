@@ -30,7 +30,7 @@ const getTodaysJournal = async (req, res) => {
         
         const hasPoints = Object.keys(pointsData).length > 0;
         
-        res.json({
+        res.status(200).json({
             content: todaysJournal.content,
             points: hasPoints ? pointsData : null,
             activities: todaysJournal.activities || null,
@@ -177,7 +177,7 @@ const generateResponse = async (req, res) => {
             });
         }
 
-        res.json(activities);
+        res.status(200).json(activities);
     } catch (err) {
         console.error("[ERROR] Activity generation failed:", err);
         res.status(500).json({ 
