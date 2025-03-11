@@ -115,7 +115,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
             <Link to="/login" className="bg-violet-600 text-white px-4 py-1 rounded">
               Login
             </Link>
-            <Link to="/register" className="bg-violet-100 text-violet-800 px-4 py-1 rounded">
+            <Link to="/login?mode=register" className="bg-violet-100 text-violet-800 px-4 py-1 rounded">
               Register
             </Link>
           </div>
@@ -226,7 +226,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                   Login
                 </Link>
                 <Link 
-                  to="/register" 
+                  to="/login?mode=register" 
                   className="bg-violet-100 text-violet-800 px-4 py-2 rounded text-center"
                   onClick={() => setIsOpen(false)}
                 >

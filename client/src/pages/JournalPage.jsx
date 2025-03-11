@@ -209,163 +209,176 @@ const JournalPage = () => {
     };
 
     return (
-        <div className={`flex flex-col ${theme.backgroundWhite}`} 
-        style={isExtraLargeScreen && !analysis? { height: `calc(100vh - 64px)` } : {}}>
-            <div className={`w-full py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6
-                           transition-all duration-700 animate-fadeDown`}>
-                <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
-                    <FontAwesomeIcon icon={faBook} className={`${theme.textViolet}`} />
-                    Daily Journal
-                </h1>
-            </div>
+        <>
+            {/* Height calculation:
+                - On extra large screens (≥1280px) with no analysis and tall enough viewport (>800px): 
+                  Use fixed height to maintain consistent layout
+                - Otherwise: Use minHeight to allow content to expand naturally and prevent whitespace
+            */}
+            <div
+                className={`flex flex-col ${theme.backgroundWhite}`}
+                style={
+                    isExtraLargeScreen && !analysis && window.innerHeight > 800
+                        ? { height: `calc(100vh - 64px)` }
+                        : { minHeight: `calc(100vh - 64px)` }
+                }
+            >
+                <div className={`w-full py-8 px-6 ${isDark ? 'bg-violet-950/30' : 'bg-violet-50/70'} mb-6
+                               transition-all duration-700 animate-fadeDown`}>
+                    <h1 className={`text-3xl lg:text-4xl font-bold text-center ${theme.textViolet} flex items-center justify-center gap-3`}>
+                        <FontAwesomeIcon icon={faBook} className={`${theme.textViolet}`} />
+                        Daily Journal
+                    </h1>
+                </div>
 
-            {/* Main content area */}
-            <div className={`flex flex-col-reverse lg:flex-row flex-1 transition-all duration-500 transform
-                           ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                {/* Journal entries section */}
-                <div className={`lg:w-64 border-t lg:border-t-0 lg:border-r ${theme.divider || theme.border}`}>
-                    {/* Desktop view - side panel */}
-                    <div className="hidden lg:block h-full">
-                        <div className={`border-b ${theme.divider || theme.border} p-4`}>
-                            <h3 className={`font-bold text-lg ${theme.textViolet}`}>Journal Entries</h3>
-                        </div>
-                        <JournalEntries
-                            journals={journals}
-                            selectedEntry={selectedEntry}
-                            onEntrySelect={handleEntrySelect}
-                        />
-                    </div>
-
-                    {/* Mobile view - bottom section */}
-                    <div className="lg:hidden mt-8">
-                        <div className="p-4">
-                            <h3 className={`font-bold text-lg ${theme.textViolet} mb-4`}>Previous Entries</h3>
+                {/* Main content area */}
+                <div className={`flex flex-col-reverse lg:flex-row flex-1 transition-all duration-500 transform
+                               ${cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                    {/* Journal entries section */}
+                    <div className={`lg:w-64 border-t lg:border-t-0 lg:border-r ${theme.divider || theme.border}`}>
+                        {/* Desktop view - side panel */}
+                        <div className="hidden lg:block h-full">
+                            <div className={`border-b ${theme.divider || theme.border} p-4`}>
+                                <h3 className={`font-bold text-lg ${theme.textViolet}`}>Journal Entries</h3>
+                            </div>
                             <JournalEntries
                                 journals={journals}
                                 selectedEntry={selectedEntry}
                                 onEntrySelect={handleEntrySelect}
                             />
                         </div>
-                    </div>
-                </div>
 
-                {/* Journal input and analysis section */}
-                <div className="flex flex-col flex-1 w-full">
-                    <div className="flex-1 p-4 lg:p-6">
-                        <JournalTips />
-
-                        {error && (
-                            <div className={`mb-4 p-3 ${theme.alert} bg-red-50 dark:bg-red-900/20 rounded-lg`}>
-                                {error}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
-                            <div className="relative">
-                                <textarea
-                                    className={`w-full h-48 p-3 border rounded-lg focus:outline-none ${error ? 'border-red-500' : theme.border
-                                        } ${theme.inputBackground || 'bg-white'} ${theme.textSecondary}`}
-                                    placeholder="How was your day? Share your activities and experiences..."
-                                    value={content}
-                                    onChange={(e) => {
-                                        setContent(e.target.value);
-                                        setError('');
-                                    }}
-                                    minLength={10}
+                        {/* Mobile view - bottom section */}
+                        <div className="lg:hidden mt-8">
+                            <div className="p-4">
+                                <h3 className={`font-bold text-lg ${theme.textViolet} mb-4`}>Previous Entries</h3>
+                                <JournalEntries
+                                    journals={journals}
+                                    selectedEntry={selectedEntry}
+                                    onEntrySelect={handleEntrySelect}
                                 />
-                                <div className={`absolute bottom-2 right-2 text-sm ${theme.textSecondary || 'text-gray-500'}`}>
-                                    {content.length} characters (min. 10)
-                                </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div className="flex gap-2">
-                                {isEditing ? (
-                                    <>
+                    {/* Journal input and analysis section */}
+                    <div className="flex flex-col flex-1 w-full">
+                        <div className="flex-1 p-4 lg:p-6">
+                            <JournalTips />
+
+                            {error && (
+                                <div className={`mb-4 p-3 ${theme.alert} bg-red-50 dark:bg-red-900/20 rounded-lg`}>
+                                    {error}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
+                                <div className="relative">
+                                    <textarea
+                                        className={`w-full h-48 p-3 border rounded-lg focus:outline-none ${error ? 'border-red-500' : theme.border
+                                            } ${theme.inputBackground || 'bg-white'} ${theme.textSecondary}`}
+                                        placeholder="How was your day? Share your activities and experiences..."
+                                        value={content}
+                                        onChange={(e) => {
+                                            setContent(e.target.value);
+                                            setError('');
+                                        }}
+                                        minLength={10}
+                                    />
+                                    <div className={`absolute bottom-2 right-2 text-sm ${theme.textSecondary || 'text-gray-500'}`}>
+                                        {content.length} characters (min. 10)
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2">
+                                    {isEditing ? (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={handleUpdate}
+                                                disabled={loading}
+                                                className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg disabled:bg-gray-400 dark:disabled:bg-gray-700 transition-colors`}
+                                            >
+                                                {loading ? 'Updating...' : 'Update Entry'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsEditing(false);
+                                                    setSelectedEntry(null);
+                                                    setContent('');
+                                                    setAnalysis(null);
+                                                }}
+                                                className="mt-4 bg-gray-500 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </>
+                                    ) : (
                                         <button
-                                            type="button"
-                                            onClick={handleUpdate}
-                                            disabled={loading}
-                                            className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg disabled:bg-gray-400 dark:disabled:bg-gray-700 transition-colors`}
+                                            type="submit"
+                                            disabled={loading || content.length < 10}
+                                            className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg cursor-pointer transition-colors`}
                                         >
-                                            {loading ? 'Updating...' : 'Update Entry'}
+                                            {loading ? 'Analyzing...' : 'Analyze My Day'}
                                         </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setIsEditing(false);
-                                                setSelectedEntry(null);
-                                                setContent('');
-                                                setAnalysis(null);
-                                            }}
-                                            className="mt-4 bg-gray-500 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </>
-                                ) : (
-                                    <button
-                                        type="submit"
-                                        disabled={loading || content.length < 10}
-                                        className={`flex-1 mt-4 ${theme.backgroundViolet} ${theme.backgroundHover || 'hover:bg-violet-900'} text-white py-2 px-4 rounded-lg cursor-pointer transition-colors`}
-                                    >
-                                        {loading ? 'Analyzing...' : 'Analyze My Day'}
-                                    </button>
-                                )}
-                            </div>
-                        </form>
-
-                        {analysis && (
-                            <div className={`mt-6 p-6 ${theme.backgroundCard} rounded-lg max-w-2xl mx-auto shadow-lg ${theme.cardShadow || ''}`}>
-                                <h3 className={`font-bold text-xl mb-4 ${theme.textViolet}`}>Your Day Analysis</h3>
-
-                                <div className="mb-4">
-                                    <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Mood</h4>
-                                    <p className={`text-lg ${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.mood}</p>
+                                    )}
                                 </div>
+                            </form>
 
-                                <div className="mb-4">
-                                    <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Summary</h4>
-                                    <p className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.summary}</p>
-                                </div>
+                            {analysis && (
+                                <div className={`mt-6 p-6 ${theme.backgroundCard} rounded-lg max-w-2xl mx-auto shadow-lg ${theme.cardShadow || ''}`}>
+                                    <h3 className={`font-bold text-xl mb-4 ${theme.textViolet}`}>Your Day Analysis</h3>
 
-                                <div>
-                                    <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Suggestions for Improving Your Well-being</h4>
-                                    <ul className="space-y-2">
-                                        {analysis.suggestions.map((suggestion, index) => (
-                                            <li key={index} className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm flex items-start`}>
-                                                <span className={`${theme.textViolet} mr-2`}>•</span>
-                                                {suggestion}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                    <div className="mb-4">
+                                        <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Mood</h4>
+                                        <p className={`text-lg ${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.mood}</p>
+                                    </div>
 
-                                <div className={`mt-4 text-sm ${theme.textSecondary || theme.textViolet}`}>
-                                    Analysis created: {new Date(analysis.timestamp).toLocaleString('en-US')}
+                                    <div className="mb-4">
+                                        <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Summary</h4>
+                                        <p className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm`}>{analysis.summary}</p>
+                                    </div>
+
+                                    <div>
+                                        <h4 className={`font-semibold ${theme.textViolet} mb-2`}>Suggestions for Improving Your Well-being</h4>
+                                        <ul className="space-y-2">
+                                            {analysis.suggestions.map((suggestion, index) => (
+                                                <li key={index} className={`${theme.inputBackground || 'bg-white'} ${theme.textSecondary} p-3 rounded-lg shadow-sm flex items-start`}>
+                                                    <span className={`${theme.textViolet} mr-2`}>•</span>
+                                                    {suggestion}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    <div className={`mt-4 text-sm ${theme.textSecondary || theme.textViolet}`}>
+                                        Analysis created: {new Date(analysis.timestamp).toLocaleString('en-US')}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
+
+                <ActivityPrompt 
+                    isOpen={showActivityPrompt}
+                    onClose={() => setShowActivityPrompt(false)}
+                    type={promptType}
+                />
+
+                {/* Add the keyframes for animations */}
+                <style jsx>{`
+                    @keyframes fadeDown {
+                        from { opacity: 0; transform: translateY(-10px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    .animate-fadeDown {
+                        animation: fadeDown 0.8s ease-out forwards;
+                    }
+                `}</style>
             </div>
-
-            <ActivityPrompt 
-                isOpen={showActivityPrompt}
-                onClose={() => setShowActivityPrompt(false)}
-                type={promptType}
-            />
-
-            {/* Add the keyframes for animations */}
-            <style jsx>{`
-                @keyframes fadeDown {
-                    from { opacity: 0; transform: translateY(-10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .animate-fadeDown {
-                    animation: fadeDown 0.8s ease-out forwards;
-                }
-            `}</style>
-        </div>
+        </>
     );
 };
 

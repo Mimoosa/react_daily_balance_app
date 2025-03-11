@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { themes } from '../contexts/themeConfig';
 import { authService } from '../services/api';
 import bgImage from '../images/bg_image.jpg';
@@ -17,7 +17,8 @@ const LoginPage = () => {
     // Initialize state and hooks
     const theme = themes.light;
     const navigate = useNavigate();
-    const [isLogin, setIsLogin] = useState(true);
+    const [searchParams] = useSearchParams();
+    const [isLogin, setIsLogin] = useState(searchParams.get('mode') !== 'register');
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -25,6 +26,11 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const { isLargeScreen, navbarHeight } = useScreenContext();
+
+    // Add effect to update isLogin when URL parameters change
+    useEffect(() => {
+        setIsLogin(searchParams.get('mode') !== 'register');
+    }, [searchParams]);
 
     /**
      * Handles form input changes and clears any existing errors
