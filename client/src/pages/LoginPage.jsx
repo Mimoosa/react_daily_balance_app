@@ -98,7 +98,7 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="relative flex items-center justify-center px-4" style={isLargeScreen ? { height: `calc(100vh - 56px)`} : {height: `calc(100vh - ${navbarHeight}px )`}}>
+        <div className="relative flex items-center justify-center px-4" style={isLargeScreen ? { height: `calc(100vh - 64px)`} : {height: `calc(100vh - ${navbarHeight}px )`}}>
           <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${bgImage})`, filter: 'blur(4px)' }}></div>
           <div className={`absolute inset-0 opacity-50`}></div>
           <div className="relative z-10 flex items-center justify-center w-full">
