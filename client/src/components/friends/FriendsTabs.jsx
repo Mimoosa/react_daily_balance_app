@@ -217,7 +217,8 @@ export default function FriendsTabs({
             {friends.map((friend) => (
               <div 
                 key={friend._id} 
-                className="flex items-center justify-between p-2 border-b dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 group"
+                className={`flex items-center justify-between p-2 border-b ${isDark ? 'dark:border-gray-600' : 'border-gray-200'} 
+                  ${isDark ? 'hover:bg-gray-700/50' : 'hover:bg-violet-50'} group transition-colors duration-200`}
               >
                 <div 
                   className="flex items-center flex-grow cursor-pointer" 
@@ -235,7 +236,8 @@ export default function FriendsTabs({
                       e.stopPropagation();
                       handleFriendClick(friend._id);
                     }}
-                    className="text-violet-500 hover:text-violet-600 p-2 rounded-full hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                    className={`${isDark ? 'text-violet-400 hover:text-violet-300 hover:bg-violet-900/30' : 'text-violet-500 hover:text-violet-600 hover:bg-violet-100'} 
+                      p-2 rounded-full transition-colors duration-200`}
                     title="View friend's dashboard"
                   >
                     <IoStatsChartOutline size={18} />
@@ -246,7 +248,8 @@ export default function FriendsTabs({
                       e.stopPropagation();
                       handleRemoveFriend(friend._id);
                     }}
-                    className="text-gray-500 hover:text-red-500 p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
+                    className={`${isDark ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/30' : 'text-gray-500 hover:text-red-500 hover:bg-red-100'} 
+                      p-2 rounded-full transition-colors duration-200`}
                     title="Remove friend"
                   >
                     <IoTrashOutline size={18} />
@@ -276,14 +279,16 @@ export default function FriendsTabs({
                 <div className="flex">
                   <button 
                     onClick={() => handleAcceptRequest(request._id)}
-                    className="bg-green-100 text-green-700 p-1 rounded-full mr-1"
+                    className={`${isDark ? 'bg-green-900/30 text-green-400 hover:bg-green-800/40' : 'bg-green-100 text-green-700 hover:bg-green-200'} 
+                      p-1 rounded-full transition-colors duration-200 mr-1`}
                     title="Accept request"
                   >
                     <IoCheckmarkCircleOutline size={20} />
                   </button>
                   <button 
                     onClick={() => handleRejectRequest(request._id)}
-                    className="bg-red-100 text-red-700 p-1 rounded-full"
+                    className={`${isDark ? 'bg-red-900/30 text-red-400 hover:bg-red-800/40' : 'bg-red-100 text-red-700 hover:bg-red-200'} 
+                      p-1 rounded-full transition-colors duration-200`}
                     title="Reject request"
                   >
                     <IoCloseCircleOutline size={20} />
@@ -312,7 +317,8 @@ export default function FriendsTabs({
                 </div>
                 <button 
                   onClick={() => handleCancelRequest(request._id)}
-                  className="bg-gray-100 text-gray-700 p-1 rounded-full"
+                  className={`${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} 
+                    p-1 rounded-full transition-colors duration-200`}
                   title="Cancel request"
                 >
                   <IoArrowUndoOutline size={20} />

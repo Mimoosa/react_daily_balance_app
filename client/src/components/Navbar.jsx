@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes } from '../contexts/icons';
 import { faCalendarDay, faBook, faChartSimple, faUser, faChalkboardTeacher, faChevronDown, faUserCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import ThemeToggle from './ThemeToggle';
 
@@ -11,9 +12,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const [resetStatus, setResetStatus] = useState(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const username = localStorage.getItem('username');
-
-  const isAuthenticated = !!localStorage.getItem('token');
+  const { isAuthenticated, user, logout } = useAuth();
 
   // Close mobile menu when navigating to a new page
   useEffect(() => {
@@ -36,7 +35,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
   }, [isOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    logout();
     setIsOpen(false);
     navigate('/login');
   };
@@ -71,7 +70,7 @@ const Navbar = ({ isOpen, setIsOpen }) => {
                 className={`${theme.textWhite} hover:${theme.textViolet} flex items-center`}
               >
                 <FontAwesomeIcon icon={faUser} className="mr-1" />
-                {username || 'Account'}
+                {user?.username || 'Account'}
                 <FontAwesomeIcon icon={faChevronDown} className="ml-1 text-xs" />
               </button>
 
