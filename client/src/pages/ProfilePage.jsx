@@ -76,7 +76,8 @@ const ProfilePage = () => {
 
     return (
         <div className={`pb-20 ${theme.backgroundWhite} ${theme.primary}`} 
-            style={isExtraLargeScreen && !isEditing ? { height: `calc(100vh - 64px)` } : {}}>
+            style={isExtraLargeScreen && !isEditing&& window.innerHeight > 800 
+            ? { height: `calc(100vh - 64px)` } : {}}>
             <div className="max-w-4xl mx-auto p-6">
                 <h1 className={`${theme.textViolet} text-3xl font-bold mb-8`}>
                     <FontAwesomeIcon icon={faUser} className="mr-3" />

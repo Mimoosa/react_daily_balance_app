@@ -218,7 +218,13 @@ const DailyActivityReport = () => {
         if (!acc[activity.category]) acc[activity.category] = 0;
         acc[activity.category] += activity.points;
         return acc;
-      }, {});
+      }, 
+      {
+        Physical: 0,
+        Cognitive: 0,
+        Social: 0,
+        Psychological: 0
+      });
       
       setTotalPoints(calculatedPoints);
       
