@@ -14,6 +14,11 @@ It combines journaling, AI-powered analysis, and social features to provide insi
 - **Frontend**: React  
 - **Backend**: Express.js  
 - **Database**: MongoDB (Atlas)  
-- **AI Integration**: Gemini API  
+- **AI Integration**: Gemini API
+
+## Demo Video
+Watch the demo on [YouTube](https://www.youtube.com/watch?v=XXXXXXXXXXX)
+
+
 
 
